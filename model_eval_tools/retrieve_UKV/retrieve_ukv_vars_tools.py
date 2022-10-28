@@ -12,18 +12,7 @@ def UKV_setup_run(scint_path, variable, DOYstart_choice, DOYstop_choice):
     Function which sets-up directory and variables before the retrieval process.
     """
 
-    # ToDo: check why obs site is used - is it to determine model grid? Or is it not needed?
-    # ToDo: check why instrument is needed. Doesn't seem relevant
-
     obs_site = sf_lookup.scint_path_numbers[scint_path].split('_')[-1]
-    instrument = sf_lookup.pair_instruments[sf_lookup.scint_path_numbers[scint_path]]
-
-    if instrument == 'LASMkII_29' or instrument == 'LASMkII_28':
-        instrument_string = 'LASMkII_Fast'
-    elif instrument == 'BLS':
-        instrument_string = 'BLS'
-    else:
-        raise ValueError('instrument not possible.')
 
     # construct save folder
     folder_name = str(DOYstart_choice) + '_' + str(DOYstop_choice) + '_' + variable + '_' + obs_site + '_' + str(
@@ -37,7 +26,7 @@ def UKV_setup_run(scint_path, variable, DOYstart_choice, DOYstop_choice):
     if not os.path.exists(save_folder):
         os.mkdir(save_folder)
 
-    return {'instrument': instrument_string, 'site': obs_site, 'save_folder': save_folder}
+    return {'site': obs_site, 'save_folder': save_folder}
 
 
 def UKV_return_model_DOY(DOYstart, DOYstop, run):

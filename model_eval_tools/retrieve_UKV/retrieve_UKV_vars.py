@@ -46,7 +46,7 @@ def retrieve_UKV(scint_path,
             sa_list = retrieve_UKV_vars_tools.find_source_area(time=time,
                                                                in_dir=in_dir_sa_list)
 
-            model_site_dict, percentage_vals_dict, percentage_covered_by_model = grid_percentages.prepare_model_grid_percentages(
+            model_site_dict, percentage_vals_dict, percentage_covered_by_model = UKV_values_from_SA_analysis.prepare_model_grid_percentages(
                 time=time,
                 sa_list=sa_list,
                 savepath=savepath)

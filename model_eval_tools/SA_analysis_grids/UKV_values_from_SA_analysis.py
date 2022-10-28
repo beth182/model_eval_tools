@@ -1,10 +1,57 @@
 import numpy as np
 import pandas as pd
+import datetime as dt
 
 from model_eval_tools import look_up
 from model_eval_tools.retrieve_UKV import find_model_files
 from model_eval_tools.retrieve_UKV import read_premade_model_files
 from model_eval_tools.SA_analysis_grids import SA_grid_overlap
+
+
+def append_grids_to_csv(time_key,
+                        model_site,
+                        percentage_vals,
+                        calculated_sum,
+                        csv_path='./ukv_grid_sa_percentages.csv'):
+    """
+    function to append - newly-calculated grid percentage overlap with SA - to a csv
+    :return:
+    """
+
+    # reads the csv
+    existing_df = pd.read_csv(csv_path)
+
+    # creates array of 0's with the same length as time, calculated_sum, then number of grids (42) - total = 44
+    zeros_array = np.zeros(44)
+
+    # first value in array is the time
+    zeros_array[0] = int(time_key)
+
+    # second is calculated sum
+    zeros_array[1] = calculated_sum
+
+    for grid, percent in zip(model_site, percentage_vals):
+        # get the index of where the percentage is going to go in the dataframe
+        # this would normally be - take away 1 from the grid (grid 1 - 42 = index 0 - 41)
+        # but as I have time as my first index, then WD, then L, so I am adding 2
+        index = grid + 1
+
+        # replace the zero in the array with the correct percent for grids which have a value here
+        zeros_array[index] = percent
+
+    # creates coloumn names for the dataframe: hour, then grid numbers
+    column_list = ['hour', 'calculated_sum']
+    for i in range(1, 43):
+        column_list.append(str(i))
+
+    # creates dataframe object
+    dfObj = pd.DataFrame([zeros_array], columns=column_list)
+
+    # combines the old and new dataframe
+    new_df = pd.concat([existing_df, dfObj])
+
+    new_df.to_csv(csv_path,
+                  index=False)
 
 
 def prepare_model_grid_percentages(time,
@@ -365,34 +412,34 @@ def determine_which_model_files(model_site_dict,
         # Step 9: Defines empty lists for the output of sort_models to be appended to.
 
         # dict of datetimes
-        # lontimedict
+        # time_dict
         combined_ukv0_list = []
         # dict of temps
-        # lontempdict
+        # var_dict
         combined_ukv1_list = []
-        # dict of temp 9
-        # lontempdict9
+        # dict of variable (all 9 grids average)
+        # var_dict_9
         combined_ukv2_list = []
-        # dict of temp 0
-        # lontempdict0
+        # dict of variable 0 (at height 1 level below target)
+        # var_dict_0
         combined_ukv3_list = []
-        # dict of temp 2
-        # lontempdict2
+        # dict of variable 2 (at height 1 level above target)
+        # var_dict_2
         combined_ukv4_list = []
         # list of strings time
-        # stringtimelon
+        # key_name_times
         combined_ukv5_list = []
         # list of strings temp
-        # stringtemplon
+        # key_names_vars
         combined_ukv6_list = []
-        # list of strings temp9
-        # stringtemplon9
+        # list of strings variable 9
+        # key_names_vars_9
         combined_ukv7_list = []
-        # list of strings temp 0
-        # stringtemplon0
+        # list of strings variable 0
+        # key_names_vars_0
         combined_ukv8_list = []
-        # list of strings temp2
-        # stringtemplon2
+        # list of strings variable 2
+        # key_names_vars_2
         combined_ukv9_list = []
 
         # ToDo: I REALLY NEED TO CHANGE THIS!
@@ -400,15 +447,15 @@ def determine_which_model_files(model_site_dict,
         # This will be the case when a stash code is used which ISN'T from the surface
 
         # height of model
-        # modheightvaluelon
+        # height_value
         combined_ukv10_list = []
         # height of model0
-        # modheightvaluelon0
+        # height_value_0
         combined_ukv11_list = []
         # height of model2
-        # modheightvaluelon2
+        # height_value_2
         combined_ukv12_list = []
-        # alllontimes
+        # all_times
         combined_ukv13_list = []
 
         # Step 10: Runs sort models for each cluster of files, and appends output.
@@ -492,3 +539,279 @@ def determine_which_model_files(model_site_dict,
         included_grids[grid] = group_ukv
 
     return included_grids, model_site
+
+
+def average_model_grids(included_grids,
+                        DOYstart_mod,
+                        DOYstop_mod,
+                        percentage_vals_dict,
+                        model_site_dict,
+                        model_site):
+    """
+    Takes an average and a weighted average of model grids based on their dynamic overlap with observation SAs.
+    :param included_grids:
+    :param DOYstart_mod:
+    :param DOYstop_mod:
+    :param percentage_vals_dict:
+    :param model_site_dict:
+    :param model_site:
+    :return:
+    """
+
+    # Defining a big list for averaging values
+    list_to_average = []
+    list_of_times = []
+    list_of_var_strings = []
+    list_of_time_strings = []
+    list_of_heights = []
+
+    for grid in sorted(included_grids):
+        # appends to appropriate lists
+        key_name_times = included_grids[grid][0]
+        key_names_vars = included_grids[grid][1]
+        time_dict = included_grids[grid][2]
+        var_dict = included_grids[grid][3]
+        height_value = included_grids[grid][4]
+
+        list_of_times.append(time_dict)
+        list_to_average.append(var_dict)
+        list_of_var_strings.append(key_names_vars)
+        list_of_time_strings.append(key_name_times)
+        list_of_heights.append(height_value)
+
+    # tests to see if all the times are the same between all the grids chosen
+    # defines function to do this
+    def all_same(items):
+        return all(x == items[0] for x in items)
+
+    # tests the times
+    if all_same(list_of_times):
+        # if all the same, continue on
+        pass
+    else:
+        # if times are different
+        raise ValueError('THERES A PROBLEM! TIMES ARE DIFFERENT!')
+
+    # because all the sting lists are the same, I can take the first one:
+
+    # error with missing observations - cannot take the index of empty list
+    strings = list_of_var_strings[0]
+
+    # gets datetime objects of the day(s) I want
+    DOYstart_dt = dt.datetime.strptime(str(DOYstart_mod), '%Y%j')
+    DOYstop_dt = dt.datetime.strptime(str(DOYstop_mod + 2),
+                                      '%Y%j')  # + 1 because it's a forecast so I need file from day before.
+    # And another + 1 because these times are at midnight
+    # (so I need midnight of next dat
+
+    new_list_of_times = []
+    new_list_to_average = []
+
+    # list_of_times = list of dictionaries, keys as day. Each dictionary is a grid
+    for grid_time, grid_val in zip(list_of_times, list_to_average):
+
+        grid_dict_times = {}
+        grid_dict_vals = {}
+
+        for day_time, day_val in zip(list_of_time_strings[0],
+                                     list_of_var_strings[0]):  # is the same as the rest (as passed the test above)
+
+            temp_day_time = []
+            temp_day_vals = []
+
+            for time, val in zip(grid_time[day_time], grid_val[day_val]):
+
+                if DOYstart_dt <= time < DOYstop_dt:
+                    temp_day_time.append(time)
+                    temp_day_vals.append(val)
+
+            # prevents empty dicts (as I'm getting rid of midnight from the end DOY - this causes empty lists
+            if len(temp_day_time) != 0:
+                grid_dict_times[day_time] = temp_day_time
+                grid_dict_vals[day_val] = temp_day_vals
+
+        new_list_of_times.append(grid_dict_times)
+        new_list_to_average.append(grid_dict_vals)
+
+    # dict to average by hour - key is date string for each hour included, values are QH vals for each grid
+    hour_dict = {}
+
+    for grid in new_list_of_times:
+
+        # for each day (or day string)
+        # gets rid of the last day string (as it used to just contain midnight which now isn't a thing)
+        for day in list_of_time_strings[0]:
+
+            for hour in grid[day]:
+                time_string = hour.strftime("%y%m%d%H")
+                hour_dict[time_string] = []
+
+    for grid_time, grid_val in zip(new_list_of_times, new_list_to_average):
+
+        # for each day (or day string)
+        for day_time, day_val in zip(list_of_time_strings[0], strings):
+
+            for hour_time, hour_val in zip(grid_time[day_time], grid_val[day_val]):
+                time_string = hour_time.strftime("%y%m%d%H")
+
+                hour_dict[time_string].append(hour_val)
+
+    if sorted(percentage_vals_dict) == sorted(model_site_dict) == sorted(hour_dict):
+        pass
+    else:
+        print(' ')
+        print("KEYS DON'T MATCH")
+        print(' ')
+        print(sorted(percentage_vals_dict))
+        print(' ')
+        print(sorted(model_site_dict))
+        print(' ')
+        print(sorted(hour_dict))
+
+        if model_site_dict == percentage_vals_dict:
+            pass
+        else:
+            mutual_keys_1 = list(set(model_site_dict).intersection(percentage_vals_dict))
+
+            to_delete_1a = set(model_site_dict.keys()).difference(mutual_keys_1)
+            to_delete_1b = set(percentage_vals_dict.keys()).difference(mutual_keys_1)
+
+            print(' ')
+            print('to_delete_1a: ', to_delete_1a)
+            print('to_delete_1b: ', to_delete_1b)
+
+            for d in to_delete_1a:
+                del model_site_dict[d]
+
+            for d in to_delete_1b:
+                del percentage_vals_dict[d]
+
+        if hour_dict == percentage_vals_dict:
+            pass
+        else:
+            # hour_dict = list(set(hour_dict).intersection(percentage_vals_dict))
+
+            mutual_keys_2 = list(set(hour_dict).intersection(percentage_vals_dict))
+
+            to_delete_2a = set(hour_dict.keys()).difference(mutual_keys_2)
+            to_delete_2b = set(percentage_vals_dict.keys()).difference(mutual_keys_2)
+
+            print(' ')
+            print('to_delete_2a: ', to_delete_2a)
+            print('to_delete_2b: ', to_delete_2b)
+
+            for d in to_delete_2a:
+                del hour_dict[d]
+
+            for d in to_delete_2b:
+                del percentage_vals_dict[d]
+
+        if hour_dict == model_site_dict:
+            pass
+        else:
+            # hour_dict = list(set(hour_dict).intersection(model_site_dict))
+
+            mutual_keys_3 = list(set(hour_dict).intersection(model_site_dict))
+
+            to_delete_3a = set(hour_dict.keys()).difference(mutual_keys_3)
+            to_delete_3b = set(model_site_dict.keys()).difference(mutual_keys_3)
+
+            print(' ')
+            print('to_delete_3a: ', to_delete_3a)
+            print('to_delete_3b: ', to_delete_3b)
+
+            for d in to_delete_3a:
+                del hour_dict[d]
+
+            for d in to_delete_3b:
+                del model_site_dict[d]
+
+
+    # all grid - to get order
+    inclu_av_grids = {}
+
+    for hour in sorted(hour_dict):
+
+        inclu_av_grids[hour] = []
+
+        for grid_num in model_site_dict[hour]:
+            index_of_grid = np.where(np.asarray(model_site) == grid_num)[0][0]
+            inclu_av_grids[hour].append(hour_dict[hour][index_of_grid])
+
+    w_av_per_hour = {}
+    av_per_hour = {}
+    for hour in sorted(hour_dict):
+        print(hour)
+        print(hour_dict[hour])
+        print(model_site)
+        print(model_site_dict[hour])
+        print(percentage_vals_dict[hour])
+        print(inclu_av_grids[hour])
+        print(np.average(inclu_av_grids[hour], axis=0, weights=percentage_vals_dict[hour]))
+        print(np.average(inclu_av_grids[hour], axis=0))
+        print(' ')
+
+        w_av_per_hour[hour] = np.average(inclu_av_grids[hour], axis=0, weights=percentage_vals_dict[hour])
+        av_per_hour[hour] = np.average(inclu_av_grids[hour], axis=0)
+
+    # getting it back into the correct format
+    w_averaged_dict = {}
+    w_averaged_dict_time = {}
+
+    # # dictionary of averaged values for each day
+    average_dict = {}
+    average_dict_time = {}
+
+    for hour in sorted(w_av_per_hour):
+        dt_ob = dt.datetime.strptime(hour, '%y%m%d%H')
+        # I want a string for the day before the content is forcatsed for (as it's a forecast the day before)
+        doy_string = dt_ob.strftime("%Y%j")
+
+        doy_num = int(doy_string) - 1  # - 1 because I want the day before - as it's a forcast
+        date_string = str(doy_num)
+
+        string_construct = 'var_' + date_string
+        string_construct_time = 'time_' + date_string
+
+        w_averaged_dict[string_construct] = []
+        w_averaged_dict_time[string_construct_time] = []
+
+        average_dict[string_construct] = []
+        average_dict_time[string_construct_time] = []
+
+    for hour in sorted(w_av_per_hour):
+        dt_ob = dt.datetime.strptime(hour, '%y%m%d%H')
+        doy_string = dt_ob.strftime("%Y%j")
+
+        doy_num = int(doy_string) - 1  # - 1 because I want the day before - as it's a forcast
+        date_string = str(doy_num)
+
+        string_construct = 'var_' + date_string
+        string_construct_time = 'time_' + date_string
+
+        w_averaged_dict[string_construct].append(w_av_per_hour[hour])
+        average_dict[string_construct].append(av_per_hour[hour])
+
+        w_averaged_dict_time[string_construct_time].append(dt_ob)
+        average_dict_time[string_construct_time].append(dt_ob)
+
+    # grouping thr average values
+    # [ key_name_times,  key_names_vars,  time_dict,    var_dict,    height_value   ]
+    # average_grouped = [list_of_time_strings[0], strings, new_list_of_times[0], average_dict, list_of_heights[0]]
+    average_grouped = [sorted(average_dict_time.keys()), sorted(average_dict.keys()), average_dict_time, average_dict,
+                       list_of_heights[0]]
+
+    included_grids['Average'] = average_grouped
+
+    # weighted average groups
+    # [ key_name_times,  key_names_vars,  time_dict,    var_dict,    height_value   ]
+    # w_average_grouped = [list_of_time_strings[0], strings, new_list_of_times[0], w_averaged_dict,
+    #                      list_of_heights[0]]
+
+    w_average_grouped = [sorted(w_averaged_dict_time.keys()), sorted(w_averaged_dict.keys()), w_averaged_dict_time,
+                         w_averaged_dict,
+                         list_of_heights[0]]
+
+    included_grids['WAverage'] = w_average_grouped
+
+    return included_grids

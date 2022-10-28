@@ -1,8 +1,107 @@
 import numpy as np
+import pandas as pd
 
 from model_eval_tools import look_up
 from model_eval_tools.retrieve_UKV import find_model_files
 from model_eval_tools.retrieve_UKV import read_premade_model_files
+
+
+def prepare_model_grid_percentages(time,
+                                   sa_list,
+                                   savepath,
+                                   csv_path='./ukv_grid_sa_percentages.csv'):
+    """
+    Function which goes through each observation source area (SA) and determines calls other functions which determine
+    the percentage ovserlap between SA and model grid.
+    :return:
+    """
+    # ToDo: move the csv file to a local location and back-up
+    # ToDo: check all other csv files which are used have backed up location
+
+    # reads the csv
+    existing_df = pd.read_csv(csv_path)
+
+    # defines dicts
+    # will have hours as keys, and then list of grid numbers or grid percentages
+    model_site_dict = {}
+    percentage_vals_dict = {}
+    percentage_covered_by_model = {}
+
+    for hour, sa in zip(time, sa_list):
+
+        time_key = hour.strftime("%y%m%d%H")
+
+        # check to see if time is in csv
+        if time_key in existing_df.hour.astype(str).str[0:8].tolist():
+
+            # value exists: gets the values from the csv
+            exists_index = np.where(np.asarray(existing_df.hour.astype(str).str[0:8].tolist()) == time_key)[0][0]
+
+            df_row = existing_df.iloc[[exists_index]]
+
+            # gets column names
+            # [1:] gets rid of 'hour'
+            no_zeros = df_row.loc[:, (df_row != 0).any(axis=0)]
+
+            calculated_sum = no_zeros.values.tolist()[0][1]
+
+            model_site = list(no_zeros.columns)[2:]
+            percentage_vals = no_zeros.values.tolist()[0][2:]
+
+            # append to dictionaries
+            model_site_dict[time_key] = model_site
+            percentage_vals_dict[time_key] = percentage_vals
+            percentage_covered_by_model[time_key] = calculated_sum
+
+
+        else:
+            # gets the percentage values for each grid
+            grid_vals, calculated_sum = sa_grid_extraction.SA_grid_percentages(sa, savepath, hour.strftime('%H'))
+
+            # calculated sum is the % of the total footprint captured falling within the model grids
+
+            # new dict for grids to be included
+            included_grids_vals_raw = {}
+
+            for grid in sorted(grid_vals):
+                grid_val = grid_vals[grid]
+
+                # if the percentage is larger than 1
+                if grid_val > 0:
+                    # append to dictionary
+                    included_grids_vals_raw[grid] = grid_val
+
+            # calculating a new percentage from a new 100% - as we have discared some of the percentages
+            # (any grid bellow 1)
+            new_100 = sum(included_grids_vals_raw.values())
+
+            included_grids_vals = {}
+
+            for grid in sorted(included_grids_vals_raw):
+                grid_val = included_grids_vals_raw[grid]
+
+                # calculates a new percentage value
+                new_val = (grid_val / new_100) * 100
+
+                included_grids_vals[grid] = new_val
+
+            model_site = sorted(included_grids_vals.keys())
+
+            # percentage vals
+            percentage_vals = []
+            for grid in model_site:
+                per_val = included_grids_vals[grid]
+                percentage_vals.append(per_val)
+
+            # append to dictionaries
+            model_site_dict[time_key] = model_site
+            percentage_vals_dict[time_key] = percentage_vals
+            percentage_covered_by_model[time_key] = calculated_sum
+
+            # append to a csv - to cut-down on processing time
+            append_grids_to_csv(time_key, model_site, percentage_vals, calculated_sum)
+
+    return model_site_dict, percentage_vals_dict, percentage_covered_by_model
 
 
 def determine_which_model_files(model_site_dict,
@@ -10,7 +109,6 @@ def determine_which_model_files(model_site_dict,
                                 DOYstop_mod,
                                 run,
                                 variable,
-                                model_format,
                                 disheight,
                                 savepath):
     """

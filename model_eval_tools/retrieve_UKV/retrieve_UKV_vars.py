@@ -1,4 +1,5 @@
 from model_eval_tools.retrieve_UKV import retrieve_UKV_vars_tools
+from model_eval_tools.SA_analysis_grids import UKV_values_from_SA_analysis
 
 
 def retrieve_UKV(scint_path,
@@ -45,21 +46,19 @@ def retrieve_UKV(scint_path,
             sa_list = retrieve_UKV_vars_tools.find_source_area(time=time,
                                                                in_dir=in_dir_sa_list)
 
-            # ToDo: got to here: moved to grid_percentages
-
             model_site_dict, percentage_vals_dict, percentage_covered_by_model = grid_percentages.prepare_model_grid_percentages(
                 time=time,
                 sa_list=sa_list,
                 savepath=savepath)
 
             # ToDo: hardcoding disheight here as 0. This is ok for now - as it's a surface stash code
-            included_grids, model_site = grid_percentages.determine_which_model_files(model_site_dict, DOYstart_mod,
-                                                                                      DOYstop_mod, run,
-                                                                                      instrument,
-                                                                                      sample, variable,
-                                                                                      obs_level, model_format, 0,
-                                                                                      z0zdlist, saveyn,
-                                                                                      savepath)
+            included_grids, model_site = UKV_values_from_SA_analysis.determine_which_model_files(model_site_dict,
+                                                                                                 DOYstart_mod,
+                                                                                                 DOYstop_mod,
+                                                                                                 run,
+                                                                                                 variable,
+                                                                                                 0,
+                                                                                                 savepath)
 
             included_grids = grid_percentages.average_model_grids(included_grids, DOYstart_mod, DOYstop_mod,
                                                                   percentage_vals_dict, model_site_dict, model_site)

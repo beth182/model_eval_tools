@@ -721,3 +721,44 @@ def extract_model_data(files,
             height_value_0,
             height_value_2,
             all_times)
+
+
+def retrieve_arrays_model(included_models, model_grid_choice):
+    """
+    Return arrays of model data after extract_model_data process
+    :param included_models:
+    :param model_grid_choice:
+    :return:
+    """
+
+    try:
+        included_model = included_models[model_grid_choice]
+
+        stringtime = included_model[0]
+        stringtemp = included_model[1]
+        timedict = included_model[2]
+        tempdict = included_model[3]
+
+    except KeyError:
+        print('No source area included in grid %d' % model_grid_choice)
+
+        stringtime = []
+        stringtemp = []
+        timedict = []
+        tempdict = []
+
+    times = []
+    vals = []
+
+    for day in stringtemp:
+        for val in tempdict[day]:
+            vals.append(val)
+
+    for day in stringtime:
+        for time in timedict[day]:
+            times.append(time)
+
+    vals_array = np.asarray(vals)
+    times_array = np.asarray(times)
+
+    return times_array, vals_array

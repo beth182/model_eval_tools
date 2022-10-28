@@ -10,7 +10,6 @@ def retrieve_UKV(scint_path,
                  DOYstart,
                  DOYstop,
                  variable='H',
-                 saveyn=1,
                  run='21Z',
                  sample='1min_sa10min',
                  model_format='new',
@@ -175,33 +174,33 @@ def retrieve_UKV(scint_path,
                 time=time,
                 sa_list=sa_list,
                 savepath=savepath,
-                csv_path='C:/Users/beths/Desktop/LANDING/ukv_grid_sa_percentages_all_grids.csv')
+                csv_path='../SA_analysis_grids/ukv_grid_sa_percentages_all_grids.csv')
 
-            included_grids_kdown_all, model_site_kdown_all = grid_percentages.determine_which_model_files(
+            included_grids_kdown_all, model_site_kdown_all = UKV_values_from_SA_analysis.determine_which_model_files(
                 model_site_dict_all,
                 DOYstart_mod,
-                DOYstop_mod, run,
-                instrument,
-                sample, variable,
-                obs_level,
-                model_format,
+                DOYstop_mod,
+                run,
+                variable,
                 0,
-                z0zdlist, saveyn,
                 savepath)
 
-            included_grids_kdown_all = grid_percentages.average_model_grids(included_grids_kdown_all, DOYstart_mod,
-                                                                            DOYstop_mod,
-                                                                            percentage_vals_dict_all,
-                                                                            model_site_dict_all,
-                                                                            model_site_kdown_all)
+            included_grids_kdown_all = UKV_values_from_SA_analysis.average_model_grids(included_grids_kdown_all,
+                                                                                       DOYstart_mod,
+                                                                                       DOYstop_mod,
+                                                                                       percentage_vals_dict_all,
+                                                                                       model_site_dict_all,
+                                                                                       model_site_kdown_all)
 
             model_grid_vals_kdown_all = {}
             model_grid_time_kdown_all = {}
 
             for grid_choice in included_grids_kdown_all.keys():
-                mod_time, mod_vals = array_retrieval.retrieve_arrays_model(included_grids_kdown_all, grid_choice)
+                mod_time, mod_vals = read_premade_model_files.retrieve_arrays_model(included_grids_kdown_all,
+                                                                                    grid_choice)
 
                 model_grid_vals_kdown_all[grid_choice] = mod_vals
+
                 # push kdown vals forward by 15 mins - as model output is 15 min average time starting
                 model_grid_time_kdown_all[grid_choice] = mod_time + dt.timedelta(minutes=15)
 

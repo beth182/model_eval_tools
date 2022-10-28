@@ -68,3 +68,93 @@ grid_dict = {1: ['MR A', 'BTT A'],
              41: ['SWT H'],
              42: ['SWT I']
              }
+
+# dict to help with adding new variables to Model Eval
+# still will have to make edits to sort_obs and sort_models when adding a new variable
+# order is:
+# 1. label for plot axis (variable name and unit as string) -- wind has two for speed and direction (in that order)
+# 2. either 'levels' or 'surface', dependant on if the variable is at the surface or on model levels. This is to help
+# for the legend in time series plots
+# 3. unit string only (used within moving stats)
+# 4. hit rate thresholds as a list, [harsh, kind]
+# 5. Histogram bin size
+# 6. y limit for the ensemble metrics
+variable_info = {'Tair': ['Air Temperature ($^{\circ}$C)', 'levels', '$^{\circ}$C', [0.5, 1.0], 0.5, [0, 25]],
+                 'RH': ['Relative Humidity (%)', 'levels', '%', [1.0, 5.0], 2.0, []],
+                 'RH_q': ['Relative Humidity (%)', 'levels', '%', [1.0, 5.0], 2.0, [0, 100]],
+                 'Press': ['Pressure (hPa)', 'levels', 'hPa', [1.0, 2.25], 2.0, []],
+                 'wind': [['Wind Speed (m s$^{-1}$)', 'Wind Direction ($^{\circ}$)'], 'levels', 'm s$^{-1}$',
+                          [0.5, 1.0], 2.0, []],
+                 'kdown': ['Incoming Shortwave Radiation (W m$^{-2}$)', 'surface', 'W m$^{-2}$', [0.5, 1.0], 10,
+                           [0, 400]],
+                 'ldown': ['Incoming Longwave Radiation (W m$^{-2}$)', 'surface', 'W m$^{-2}$', [0.5, 1.0], 2.0, []],
+                 'lstar': ['Net Longwave Radiation (W m$^{-2}$)', 'surface', 'W m$^{-2}$', [0.5, 1.0], 2.0, []],
+                 'lup': ['Outgoing Longwave Radiation (W m$^{-2}$)', 'surface', 'W m$^{-2}$', [0.5, 1.0], 2.0, []],
+                 'kup': ['Outgoing Shortwave Radiation (W m$^{-2}$)', 'surface', 'W m$^{-2}$', [0.5, 1.0], 2.0, []],
+                 'netallwave': ['Net All-Wave Radiation (W m$^{-2}$)', 'surface', 'W m$^{-2}$', [0.5, 1.0], 2.0, []],
+                 'H': ['Sensible Heat Flux (W m$^{-2}$)', 'surface', 'W m$^{-2}$', [25, 80], 10, [-50, 300]],
+                 'LE': ['Latent Heat Flux (W m$^{-2}$)', 'surface', 'W m$^{-2}$', [5, 20], 10, [-10, 50]],
+                 'CT2': ['CT2'],  # Added for scintillometry eval
+                 'X_c': ['X_c'],  # Added for scintillometry eval
+                 'Y_c': ['Y_c'],  # Added for scintillometry eval
+                 'X_c, Y_c': ['X_c, Y_c'],  # Added for scintillometry eval
+                 'sd_v': ['sd_v'],  # Added for scintillometry eval
+                 'L': ['L'],  # Added for scintillometry eval
+                 'ustar': ['ustar'],  # Added for scintillometry eval
+                 'PAR_W': ['PAR'],  # Added for kdown allignment tests
+                 'BL_H': ['BL Heat Flux (W m$^{-2}$)', 'levels', 'W m$^{-2}$', [25, 80], 10, [-50, 300]]}
+
+# for MODEL files
+premade_model_site_codes = {'Heathrow': 'Heathrow',
+                            'BCT': 'LON_BCT',
+                            'BFCL': 'LON_BFCL',
+                            'BGH': 'LON_BGH',
+                            'BTT': 'LON_BTT',
+                            'IML': 'LON_IML',
+                            'IMU': 'LON_IMU',
+                            'KSSW': 'LON_KSSW',
+                            'MR': 'LON_MR',
+                            'NK': 'LON_NK',
+                            'RGS': 'LON_RGS',
+                            'SWT': 'LON_SWT',
+                            'Reading': 'Reading'}
+
+
+# calculated from notebooks/surface_altitudes/lon_ukv_surface_altitudes.ipynb
+# stash m01s00i033
+UKV_site_altitudes = {'Heathrow': 26.084702,
+                      'LON_BCT': 25.500525,
+                      'LON_BFCL': 25.500525,
+                      'LON_BGH': 17.123268,
+                      'LON_BTT': 43.288658,
+                      'LON_IML': 29.193649,
+                      'LON_IMU': 29.193649,
+                      'LON_KSSW': 26.755775,
+                      'LON_MR': 43.288658,
+                      'LON_NK': 28.70874,
+                      'LON_RGS': 19.805748,
+                      'LON_SWT': 3.0381837,
+                      'Reading': 43.790215}
+
+LON_site_altitudes = {'Heathrow': 22.805416107177734,
+                      'LON_BCT': 28.072063446044922,
+                      'LON_BFCL': 29.131160736083984,
+                      'LON_BGH': 29.131160736083984,
+                      'LON_BTT': 35.290924072265625,
+                      'LON_IML': 24.953636169433594,
+                      'LON_IMU': 24.953636169433594,
+                      'LON_KSSW': 17.655845642089844,
+                      'LON_MR': 35.698440551757813,
+                      'LON_NK': 25.287059783935547,
+                      'LON_RGS': 26.907081604003906,
+                      'LON_SWT': 6.5159897804260254,
+                      'Reading': 62.51922607421875}
+
+
+# models that are avalible and their settings
+# 0 - file name preface
+# 1 - model colour for plotting
+# 2 - z0_index
+model_options = {'ukv': ['MOUKV_FC', 'b', 0],
+                 'lon': ['MOLON_FC', 'r', 1],
+                 'mor': ['MOMOR_FC', 'purple', 1]}

@@ -1,4 +1,7 @@
+import numpy as np
+
 from model_eval_tools import look_up
+from model_eval_tools.retrieve_UKV import find_model_files
 
 
 def determine_which_model_files(model_site_dict,
@@ -11,8 +14,6 @@ def determine_which_model_files(model_site_dict,
                                 obs_level,
                                 model_format,
                                 disheight,
-                                z0zdlist,
-                                saveyn,
                                 savepath):
     """
     finds all the grids which will be needed - looks through the whole model site dict and gets all grid numbers
@@ -54,11 +55,11 @@ def determine_which_model_files(model_site_dict,
 
         # For this grid:
 
-        # calling grid_dict from variables.py to see what sites include this grid as part of their 3x3
+        # calling grid_dict from look_up to see what sites include this grid as part of their 3x3
         print('Options with this grid number are: ', look_up.grid_dict[grid])
 
         # Step 1:
-        # makes lists for sites and grid litters for all items called from variables.py,
+        # makes lists for sites and grid litters for all items called from look_up,
         # in order to find files for them (based on what is present in the grid_dict)
 
         # list of sites
@@ -92,19 +93,16 @@ def determine_which_model_files(model_site_dict,
 
             print(' ')
             print('FINDING FILES FOR SITE: ', sitei)
-            file_dict_ukv = file_read.finding_files(model_format,
-                                                    'ukv',
-                                                    DOYstart_mod,
-                                                    DOYstop_mod,
-                                                    sitei,
-                                                    run,
-                                                    instrument,
-                                                    sample,
-                                                    variable,
-                                                    obs_level,
-                                                    # model_path="//rdg-home.ad.rdg.ac.uk/research-nfs/basic/micromet/Tier_processing/rv006011/new_data_storage/"
-                                                    model_path='C:/Users/beths/Desktop/LANDING/data_wifi_problems/data/'
-                                                    )
+
+            file_dict_ukv = find_model_files.find_UKV_files(DOYstart_mod,
+                                                            DOYstop_mod,
+                                                            sitei,
+                                                            'ukv',
+                                                            run,
+                                                            variable,
+                                                            # model_path="//rdg-home.ad.rdg.ac.uk/research-nfs/basic/micromet/Tier_processing/rv006011/new_data_storage/"
+                                                            model_path='C:/Users/beths/Desktop/LANDING/data_wifi_problems/data/'
+                                                            )
 
             # append the keys to key_list
             list_of_keys = file_dict_ukv.keys()
@@ -327,11 +325,9 @@ def determine_which_model_files(model_site_dict,
             DOYstop_temp = int(list(file_dict_ukv.keys())[-1][3:])
 
             # ordering UKV model files
-            # file_read.py
-            files_ukv = file_read.order_model_stashes('ukv', file_dict_ukv, variable)
+            files_ukv = find_model_files.order_model_stashes(file_dict_ukv, variable)
 
             # sort models
-            # models.py
             ukv = sort_model.sort_models(variable, 'ukv', files_ukv, disheight, DOYstart_temp, DOYstop_temp,
                                          site_item, savepath, model_format, grid_item)
 

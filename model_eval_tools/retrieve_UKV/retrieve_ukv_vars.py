@@ -216,23 +216,19 @@ def retrieve_UKV(scint_path,
 
     if variable == 'wind':
         # finding UKV files
-        # file_read.py
-        file_dict_ukv_wind = file_read.finding_files(model_format,
-                                                     'ukv',
-                                                     DOYstart_mod,
-                                                     DOYstop_mod,
-                                                     'IMU',
-                                                     run,
-                                                     instrument,
-                                                     sample,
-                                                     'wind',
-                                                     obs_level,
-                                                     model_path="//rdg-home.ad.rdg.ac.uk/research-nfs/basic/micromet/Tier_processing/rv006011/new_data_storage/"
-                                                     # model_path='C:/Users/beths/Desktop/LANDING/data_wifi_problems/data/'
-                                                     )
+        file_dict_ukv_wind = find_model_files.find_UKV_files(DOYstart_mod,
+                                                             DOYstop_mod,
+                                                             'IMU',
+                                                             'ukv',
+                                                             run,
+                                                             'wind',
+                                                             model_path="//rdg-home.ad.rdg.ac.uk/research-nfs/basic/micromet/Tier_processing/rv006011/new_data_storage/"
+                                                             # model_path='C:/Users/beths/Desktop/LANDING/data_wifi_problems/data/'
+                                                             )
 
-        files_ukv_wind = file_read.order_model_stashes('ukv', file_dict_ukv_wind, 'wind')
+        files_ukv_wind = find_model_files.order_model_stashes(file_dict_ukv_wind, 'wind')
 
+        # ToDo: up to here
         ukv_wind = sort_model_wind.sort_models_wind('wind', 'ukv', files_ukv_wind, av_disheight, DOYstart, DOYstop,
                                                     'BCT', savepath, model_format, grid_choice='E')
 

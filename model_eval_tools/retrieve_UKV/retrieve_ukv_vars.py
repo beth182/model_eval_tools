@@ -226,9 +226,15 @@ def retrieve_UKV(scint_path,
 
         files_ukv_wind = find_model_files.order_model_stashes(file_dict_ukv_wind, 'wind')
 
-        # ToDo: up to here
-        ukv_wind = sort_model_wind.sort_models_wind('wind', 'ukv', files_ukv_wind, av_disheight, DOYstart, DOYstop,
-                                                    'BCT', savepath, model_format, grid_choice='E')
+        ukv_wind = read_premade_model_files.extract_model_data_wind(files_ukv_wind,
+                                                                    DOYstart,
+                                                                    DOYstop,
+                                                                    'wind',
+                                                                    'ukv',
+                                                                    av_disheight,
+                                                                    'BCT',
+                                                                    savepath,
+                                                                    grid_choice='E')
 
         # define dict for included models
         included_models_ws = {}

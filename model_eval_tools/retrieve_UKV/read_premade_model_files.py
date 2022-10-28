@@ -724,6 +724,8 @@ def extract_model_data_wind(files,
                 wind_dict_2,
                 dir_dict_2)
 
+    assert variable == 'wind'
+
     # choices dependent on variable choice
     label_string = look_up.variable_info[variable][0]
 

@@ -11,26 +11,18 @@ def retrieve_UKV(scint_path,
                  DOYstop,
                  variable='H',
                  run='21Z',
-                 model_format='new',
                  sa_analysis=True,
                  av_disheight=False):
     """
     """
 
     setup_run_dict = retrieve_ukv_vars_tools.UKV_setup_run(scint_path, variable, DOYstart, DOYstop)
-    instrument = setup_run_dict['instrument']
     site = setup_run_dict['site']
     savepath = setup_run_dict['save_folder']
 
     return_model_DOY_dict = retrieve_ukv_vars_tools.UKV_return_model_DOY(DOYstart, DOYstop, run)
     DOYstart_mod = return_model_DOY_dict['DOYstart_mod']
     DOYstop_mod = return_model_DOY_dict['DOYstop_mod']
-
-    # define roughness length and displacemet height
-    # note: this step doesn't matter with the scint runs. As we are evaluating a surface model output.
-    # This step is only included to keep things running, and values are over-written in the sort_model function.
-    # ToDo: make sure this is actually used?
-    z0zdlist = retrieve_ukv_vars_tools.UKV_z0_zd(site)
 
     model_grid_vals = {}
     model_grid_time = {}

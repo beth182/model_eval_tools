@@ -249,8 +249,8 @@ def retrieve_UKV(scint_path,
         included_models_ws['ukv'] = group_ukv_ws
         included_models_wd['ukv'] = group_ukv_wd
 
-        mod_time_ws, mod_vals_ws = array_retrieval.retrieve_arrays_model(included_models_ws, 'ukv')
-        mod_time_wd, mod_vals_wd = array_retrieval.retrieve_arrays_model(included_models_wd, 'ukv')
+        mod_time_ws, mod_vals_ws = read_premade_model_files.retrieve_arrays_model(included_models_ws, 'ukv')
+        mod_time_wd, mod_vals_wd = read_premade_model_files.retrieve_arrays_model(included_models_wd, 'ukv')
 
         assert mod_time_ws.all() == mod_time_wd.all()
 

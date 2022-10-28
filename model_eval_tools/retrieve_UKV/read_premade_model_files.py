@@ -627,6 +627,8 @@ def extract_model_data(files,
     pylab.savefig(savestring + str(variable) + '_' + str(model_name) + '_' + sitechoice + '_' +
                   str(DOYstart) + '_' + str(DOYstop) + '.png', bbox_inches='tight')
 
+    plt.close('all')
+
     # ToDo: check if all these returns are needed
     # ToDo: return as a dict
     return (time_dict,
@@ -1434,6 +1436,8 @@ def extract_model_data_wind(files,
 
         pylab.savefig(savestring + str(variable) + '_' + str(model) + '_' + sitechoice + '_' +
                       str(DOYstart) + '_' + str(DOYstop) + '.png', bbox_inches='tight')
+
+        plt.close('all')
 
     except:
         print('WIND PLOTS NOT MADE!!!')

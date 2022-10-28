@@ -1,4 +1,5 @@
 import datetime as dt
+import pandas as pd
 
 from model_eval_tools.retrieve_UKV import retrieve_ukv_vars_tools
 from model_eval_tools.sa_analysis_grids import ukv_values_from_SA_analysis
@@ -256,3 +257,48 @@ def retrieve_UKV(scint_path,
 
     return {'model_grid_time': model_grid_time, 'model_grid_vals': model_grid_vals, 'model_site_dict': model_site_dict,
             'BL_H_z': BL_H_z, 'savepath': savepath, 'all_grids_kdown_dict': all_grids_kdown_dict}
+
+
+def UKV_df(ukv_data_dict,
+           time_key='model_grid_time',
+           val_key='model_grid_vals',
+           wind=False):
+    """
+    Function to convert retrieve UKV vars into coherent df
+    :param ukv_data_dict:
+    :param time_key:
+    :param val_key:
+    :param wind:
+    :return:
+    """
+
+    # time
+    UKV_time = ukv_data_dict[time_key]
+    UKV_vals = ukv_data_dict[val_key]
+
+    if not wind:
+        assert UKV_time.keys() == UKV_vals.keys()
+
+        list_of_UKV_df = []
+        for key in UKV_time.keys():
+            vals = UKV_vals[key]
+            times = UKV_time[key]
+
+            df = pd.DataFrame.from_dict({'time': times, key: vals})
+            df = df.set_index('time')
+            list_of_UKV_df.append(df)
+
+    else:
+        list_of_UKV_df = []
+        for key in UKV_time.keys():
+            vals_wd = UKV_vals['wind_direction']
+            vals_ws = UKV_vals['wind_speed']
+            times = UKV_time[key]
+
+            df = pd.DataFrame.from_dict({'time': times, 'wind_speed': vals_ws, 'wind_direction': vals_wd})
+            df = df.set_index('time')
+            list_of_UKV_df.append(df)
+
+    UKV_df = pd.concat(list_of_UKV_df, axis=1)
+
+    return UKV_df

@@ -12,7 +12,7 @@ def append_grids_to_csv(time_key,
                         model_site,
                         percentage_vals,
                         calculated_sum,
-                        csv_path='./ukv_grid_sa_percentages.csv'):
+                        csv_path='../sa_analysis_grids/ukv_grid_sa_percentages.csv'):
     """
     function to append - newly-calculated grid percentage overlap with SA - to a csv
     :return:
@@ -57,7 +57,7 @@ def append_grids_to_csv(time_key,
 def prepare_model_grid_percentages(time,
                                    sa_list,
                                    savepath,
-                                   csv_path='./ukv_grid_sa_percentages.csv'):
+                                   csv_path='../sa_analysis_grids/ukv_grid_sa_percentages.csv'):
     """
     Function which goes through each observation source area (SA) and determines calls other functions which determine
     the percentage ovserlap between SA and model grid.

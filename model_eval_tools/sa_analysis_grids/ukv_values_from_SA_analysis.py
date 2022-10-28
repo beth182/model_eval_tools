@@ -5,7 +5,7 @@ import datetime as dt
 from model_eval_tools import look_up
 from model_eval_tools.retrieve_UKV import find_model_files
 from model_eval_tools.retrieve_UKV import read_premade_model_files
-from model_eval_tools.SA_analysis_grids import SA_grid_overlap
+from model_eval_tools.sa_analysis_grids import sa_grid_overlap
 
 
 def append_grids_to_csv(time_key,
@@ -102,7 +102,7 @@ def prepare_model_grid_percentages(time,
 
         else:
             # gets the percentage values for each grid
-            grid_vals, calculated_sum = SA_grid_overlap.SA_grid_percentages(sa, savepath, hour.strftime('%H'))
+            grid_vals, calculated_sum = sa_grid_overlap.SA_grid_percentages(sa, savepath, hour.strftime('%H'))
 
             # calculated sum is the % of the total footprint captured falling within the model grids
 

@@ -1,7 +1,7 @@
 import datetime as dt
 
-from model_eval_tools.retrieve_UKV import retrieve_UKV_vars_tools
-from model_eval_tools.SA_analysis_grids import UKV_values_from_SA_analysis
+from model_eval_tools.retrieve_UKV import retrieve_ukv_vars_tools
+from model_eval_tools.sa_analysis_grids import ukv_values_from_SA_analysis
 from model_eval_tools.retrieve_UKV import read_premade_model_files
 from model_eval_tools.retrieve_UKV import find_model_files
 
@@ -19,12 +19,12 @@ def retrieve_UKV(scint_path,
     """
     """
 
-    setup_run_dict = retrieve_UKV_vars_tools.UKV_setup_run(scint_path, variable, DOYstart, DOYstop)
+    setup_run_dict = retrieve_ukv_vars_tools.UKV_setup_run(scint_path, variable, DOYstart, DOYstop)
     instrument = setup_run_dict['instrument']
     site = setup_run_dict['site']
     savepath = setup_run_dict['save_folder']
 
-    return_model_DOY_dict = retrieve_UKV_vars_tools.UKV_return_model_DOY(DOYstart, DOYstop, run)
+    return_model_DOY_dict = retrieve_ukv_vars_tools.UKV_return_model_DOY(DOYstart, DOYstop, run)
     DOYstart_mod = return_model_DOY_dict['DOYstart_mod']
     DOYstop_mod = return_model_DOY_dict['DOYstop_mod']
 
@@ -32,7 +32,7 @@ def retrieve_UKV(scint_path,
     # note: this step doesn't matter with the scint runs. As we are evaluating a surface model output.
     # This step is only included to keep things running, and values are over-written in the sort_model function.
     # ToDo: make sure this is actually used?
-    z0zdlist = retrieve_UKV_vars_tools.UKV_z0_zd(site)
+    z0zdlist = retrieve_ukv_vars_tools.UKV_z0_zd(site)
 
     model_grid_vals = {}
     model_grid_time = {}
@@ -43,19 +43,19 @@ def retrieve_UKV(scint_path,
 
             in_dir_sa_list = 'C:/Users/beths/Desktop/LANDING/fp_output/' + str(DOYstart)[4:] + '/hourly/'
 
-            time = retrieve_UKV_vars_tools.retrieve_SA_hours(in_dir_sa_list, DOYstart)
+            time = retrieve_ukv_vars_tools.retrieve_SA_hours(in_dir_sa_list, DOYstart)
 
             # find source area raster
-            sa_list = retrieve_UKV_vars_tools.find_source_area(time=time,
+            sa_list = retrieve_ukv_vars_tools.find_source_area(time=time,
                                                                in_dir=in_dir_sa_list)
 
-            model_site_dict, percentage_vals_dict, percentage_covered_by_model = UKV_values_from_SA_analysis.prepare_model_grid_percentages(
+            model_site_dict, percentage_vals_dict, percentage_covered_by_model = ukv_values_from_SA_analysis.prepare_model_grid_percentages(
                 time=time,
                 sa_list=sa_list,
                 savepath=savepath)
 
             # ToDo: hardcoding disheight here as 0. This is ok for now - as it's a surface stash code
-            included_grids, model_site = UKV_values_from_SA_analysis.determine_which_model_files(model_site_dict,
+            included_grids, model_site = ukv_values_from_SA_analysis.determine_which_model_files(model_site_dict,
                                                                                                  DOYstart_mod,
                                                                                                  DOYstop_mod,
                                                                                                  run,
@@ -63,7 +63,7 @@ def retrieve_UKV(scint_path,
                                                                                                  0,
                                                                                                  savepath)
 
-            included_grids = UKV_values_from_SA_analysis.average_model_grids(included_grids,
+            included_grids = ukv_values_from_SA_analysis.average_model_grids(included_grids,
                                                                              DOYstart_mod,
                                                                              DOYstop_mod,
                                                                              percentage_vals_dict,
@@ -170,13 +170,13 @@ def retrieve_UKV(scint_path,
         if sa_analysis == True:
             # kdown from all grids
 
-            model_site_dict_all, percentage_vals_dict_all, percentage_covered_by_model_all = UKV_values_from_SA_analysis.prepare_model_grid_percentages(
+            model_site_dict_all, percentage_vals_dict_all, percentage_covered_by_model_all = ukv_values_from_SA_analysis.prepare_model_grid_percentages(
                 time=time,
                 sa_list=sa_list,
                 savepath=savepath,
-                csv_path='../SA_analysis_grids/ukv_grid_sa_percentages_all_grids.csv')
+                csv_path='../sa_analysis_grids/ukv_grid_sa_percentages_all_grids.csv')
 
-            included_grids_kdown_all, model_site_kdown_all = UKV_values_from_SA_analysis.determine_which_model_files(
+            included_grids_kdown_all, model_site_kdown_all = ukv_values_from_SA_analysis.determine_which_model_files(
                 model_site_dict_all,
                 DOYstart_mod,
                 DOYstop_mod,
@@ -185,7 +185,7 @@ def retrieve_UKV(scint_path,
                 0,
                 savepath)
 
-            included_grids_kdown_all = UKV_values_from_SA_analysis.average_model_grids(included_grids_kdown_all,
+            included_grids_kdown_all = ukv_values_from_SA_analysis.average_model_grids(included_grids_kdown_all,
                                                                                        DOYstart_mod,
                                                                                        DOYstop_mod,
                                                                                        percentage_vals_dict_all,

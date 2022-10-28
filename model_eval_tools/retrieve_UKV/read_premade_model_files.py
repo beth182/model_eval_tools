@@ -871,7 +871,7 @@ def extract_model_data_wind(files,
             continue
 
         # check that the heights are the same between stash codes
-        assert model_heights_u == model_heights_v
+        assert model_heights_u.all() == model_heights_v.all()
 
         # finds the closest value of model height to observation, and saves the index
         # if there is no observation files, disheight will be returned as an empty list. So this list is replaced by

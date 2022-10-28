@@ -3,7 +3,7 @@ import datetime as dt
 from calendar import isleap
 import sys
 
-from scint_eval import look_up
+from model_eval_tools import look_up
 
 
 def find_UKV_files(DOYstart,
@@ -159,7 +159,7 @@ def find_UKV_files(DOYstart,
                 for code in codes:
                     # where model_options[model_name][0] is the model filename preface
                     filename = look_up.model_options[model_name][0] + dateobject.strftime(
-                        '%Y%m%d') + run + '_' + code + '_' + look_up.sites[
+                        '%Y%m%d') + run + '_' + code + '_' + look_up.premade_model_site_codes[
                                    sitechoice] + '.nc'
 
                     pathto = modmainpath + '/' + item + '/'
@@ -173,7 +173,7 @@ def find_UKV_files(DOYstart,
 
                 # where model_options[model_name][0] is the model filename preface
                 filename = look_up.model_options[model_name][0] + dateobject.strftime(
-                    '%Y%m%d') + run + '_' + code + '_' + look_up.sites[
+                    '%Y%m%d') + run + '_' + code + '_' + look_up.premade_model_site_codes[
                                sitechoice] + '.nc'
 
                 pathto = modmainpath + '/' + item + '/'

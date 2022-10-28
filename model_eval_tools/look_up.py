@@ -158,3 +158,20 @@ LON_site_altitudes = {'Heathrow': 22.805416107177734,
 model_options = {'ukv': ['MOUKV_FC', 'b', 0],
                  'lon': ['MOLON_FC', 'r', 1],
                  'mor': ['MOMOR_FC', 'purple', 1]}
+
+# for finding files: stash codes
+# kup: down then star
+# wind: u then v
+variables = {'Tair': 'm01s16i004',
+             'RH': 'm01s09i229',
+             'Press': 'm01s00i408',
+             'wind': ['m01s00i002', 'm01s00i003'],
+             'kdown': 'm01s01i235',
+             'ldown': 'm01s02i207',
+             'kup': ['m01s01i235', 'm01s01i201'],
+             'lstar': 'm01s02i201',
+             'RH_q': ['m01s16i004', 'm01s00i408', 'm01s00i010'],
+             'H': 'm01s03i217',
+             'LE': 'm01s03i234',
+             'BL_H': 'm01s03i216',
+             'z0': 'm01s03i026'}

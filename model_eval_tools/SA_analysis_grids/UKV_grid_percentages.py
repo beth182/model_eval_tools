@@ -2,6 +2,7 @@ import numpy as np
 
 from model_eval_tools import look_up
 from model_eval_tools.retrieve_UKV import find_model_files
+from model_eval_tools.retrieve_UKV import read_premade_model_files
 
 
 def determine_which_model_files(model_site_dict,
@@ -325,8 +326,16 @@ def determine_which_model_files(model_site_dict,
             files_ukv = find_model_files.order_model_stashes(file_dict_ukv, variable)
 
             # sort models
-            ukv = sort_model.sort_models(variable, 'ukv', files_ukv, disheight, DOYstart_temp, DOYstop_temp,
-                                         site_item, savepath, model_format, grid_item)
+            ukv = read_premade_model_files.extract_model_data(files_ukv,
+                                                              DOYstart_temp,
+                                                              DOYstop_temp,
+                                                              variable,
+                                                              'ukv',
+                                                              disheight,
+                                                              site_item,
+                                                              savepath,
+                                                              grid_choice=grid_item
+                                                              )
 
             # appends outputs to lists
             combined_ukv0_list.append(ukv[0])
@@ -379,7 +388,7 @@ def determine_which_model_files(model_site_dict,
         # This then acts as 'included_models'
 
         # groups the outputs for the time series plots
-        # [ stringtimelon,  stringtemplon,  lontimedict,    lontempdict,    modheightvaluelon   ]
+        # [ key_name_times,  key_names_vars,  time_dict,    var_dict,    height_value   ]
         group_ukv = [combined_ukv5, combined_ukv6, combined_ukv0, combined_ukv1, temp_height_botch]
 
         # appends to dictionary

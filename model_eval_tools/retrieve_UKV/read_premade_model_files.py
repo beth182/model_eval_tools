@@ -706,6 +706,7 @@ def extract_model_data(files,
                   str(DOYstart) + '_' + str(DOYstop) + '.png', bbox_inches='tight')
 
     # ToDo: check if all these returns are needed
+    # ToDo: return as a dict
     return (time_dict,
             var_dict,
             var_dict_9,

@@ -4,6 +4,7 @@ import pandas as pd
 from model_eval_tools import look_up
 from model_eval_tools.retrieve_UKV import find_model_files
 from model_eval_tools.retrieve_UKV import read_premade_model_files
+from model_eval_tools.SA_analysis_grids import SA_grid_overlap
 
 
 def prepare_model_grid_percentages(time,
@@ -15,8 +16,6 @@ def prepare_model_grid_percentages(time,
     the percentage ovserlap between SA and model grid.
     :return:
     """
-    # ToDo: move the csv file to a local location and back-up
-    # ToDo: check all other csv files which are used have backed up location
 
     # reads the csv
     existing_df = pd.read_csv(csv_path)
@@ -56,7 +55,7 @@ def prepare_model_grid_percentages(time,
 
         else:
             # gets the percentage values for each grid
-            grid_vals, calculated_sum = sa_grid_extraction.SA_grid_percentages(sa, savepath, hour.strftime('%H'))
+            grid_vals, calculated_sum = SA_grid_overlap.SA_grid_percentages(sa, savepath, hour.strftime('%H'))
 
             # calculated sum is the % of the total footprint captured falling within the model grids
 

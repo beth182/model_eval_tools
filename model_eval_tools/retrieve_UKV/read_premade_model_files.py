@@ -645,6 +645,824 @@ def extract_model_data(files,
             all_times)
 
 
+def extract_model_data_wind(files,
+                            DOYstart,
+                            DOYstop,
+                            variable,
+                            model,
+                            target_height,
+                            sitechoice,
+                            savestring,
+                            grid_choice=0,
+                            hoursbeforerepeat=24):
+    """
+    Read premade model files, and extract wanted data from them.
+    See extract_model_data for the following:
+    :param files:
+    :param DOYstart:
+    :param DOYstop:
+    :param variable:
+    :param model:
+    :param target_height:
+    :param sitechoice:
+    :param savestring:
+    :param grid_choice:
+    :param hoursbeforerepeat:
+    :return:
+    """
+
+    print(' ')
+    print('-----------------------------------------------------------------------------------------------------------')
+    print('Sorting Model Wind: ' + str(model))
+    print(' ')
+
+    # if there are no model files
+    if len(files) == 0:
+        print('No files for model:', model)
+        time_dict = []
+        wind_dict = []
+        dir_dict = []
+        key_name_times = []
+        key_name_winds = []
+        key_name_dirs = []
+        height_value = []
+        all_times = []
+        key_name_winds_9 = []
+        key_name_dirs_9 = []
+        key_name_winds_0 = []
+        key_name_dirs_0 = []
+        key_name_winds_2 = []
+        key_name_dirs_2 = []
+        height_value_0 = []
+        height_value_2 = []
+        wind_dict_9 = []
+        dir_dict_9 = []
+        wind_dict_0 = []
+        dir_dict_0 = []
+        wind_dict_2 = []
+        dir_dict_2 = []
+        return (time_dict,
+                wind_dict,
+                dir_dict,
+                key_name_times,
+                key_name_winds,
+                key_name_dirs,
+                height_value,
+                all_times,
+                key_name_winds_9,
+                key_name_dirs_9,
+                key_name_winds_0,
+                key_name_dirs_0,
+                key_name_winds_2,
+                key_name_dirs_2,
+                height_value_0,
+                height_value_2,
+                wind_dict_9,
+                dir_dict_9,
+                wind_dict_0,
+                dir_dict_0,
+                wind_dict_2,
+                dir_dict_2)
+
+    # choices dependent on variable choice
+    label_string = look_up.variable_info[variable][0]
+
+    ####################################################################################################################
+    #                                                     WIND
+    ####################################################################################################################
+    # MORE THAN ONE STASH CODE INCLUDED FOR THIS VARIABLE
+    u_index_for_files = 0
+    v_index_for_files = 1
+
+    # creates lists to plot outside of the for loop
+    time_dict = {}
+    for item in files[0].keys():
+        varname = "time_" + str(item)
+        time_dict[varname] = []
+        time_dict[varname].append('placeholder')
+    # speed
+    wind_dict = {}
+    for item in files[0].keys():
+        varname = "wind_" + str(item)
+        wind_dict[varname] = []
+        wind_dict[varname].append('placeholder')
+    # dir
+    dir_dict = {}
+    for item in files[0].keys():
+        varname = "dir_" + str(item)
+        dir_dict[varname] = []
+        dir_dict[varname].append('placeholder')
+
+    # Creating a list to keep track of any dodgy model files with large time arrays when converting to datetime
+    dodgy_files = []
+
+    # all 9 grids temp - to average all the grids, rather than just take the centre grid
+    # all variables associated with this include '9' in the variable name, due to there being 9 grids
+    wind_dict_9 = {}
+    for item in files[0].keys():
+        varname = "wind_9_" + str(item)
+        wind_dict_9[varname] = []
+        wind_dict_9[varname].append('placeholder')
+
+    dir_dict_9 = {}
+    for item in files[0].keys():
+        varname = "dir_9_" + str(item)
+        dir_dict_9[varname] = []
+        dir_dict_9[varname].append('placeholder')
+
+    # adding the height above and below:
+    wind_dict_0 = {}
+    for item in files[0].keys():
+        varname = "wind_0_" + str(item)
+        wind_dict_0[varname] = []
+        wind_dict_0[varname].append('placeholder')
+    wind_dict_2 = {}
+    for item in files[0].keys():
+        varname = "wind_2_" + str(item)
+        wind_dict_2[varname] = []
+        wind_dict_2[varname].append('placeholder')
+
+    dir_dict_0 = {}
+    for item in files[0].keys():
+        varname = "dir0" + str(item)
+        dir_dict_0[varname] = []
+        dir_dict_0[varname].append('placeholder')
+    dir_dict_2 = {}
+    for item in files[0].keys():
+        varname = "dir2" + str(item)
+        dir_dict_2[varname] = []
+        dir_dict_2[varname].append('placeholder')
+
+    # loops over the london model file paths in obvsdict (to import the data each time), and the empty
+    # lists ready in lonswinddict,and time_dict, dir_dict (plus 3x3 average and 2nd height lists)
+    # these will be dictionaries including lists full of values and time respectively,
+    # one list for each day/ file in the observation files
+    for uitem, vitem, wind, time, direction, wind_9, dir_9, wind_0, wind_2, dir_0, dir_2 in zip(
+            sorted(files[u_index_for_files].values()),
+            sorted(files[v_index_for_files].values()),
+            sorted(wind_dict),
+            sorted(time_dict),
+            sorted(dir_dict),
+            sorted(wind_dict_9),
+            sorted(dir_dict_9),
+            sorted(wind_dict_0),
+            sorted(wind_dict_2),
+            sorted(dir_dict_0),
+            sorted(dir_dict_2)):
+
+        # assigns model .nc file
+        file_path_u = uitem
+        file_path_v = vitem
+
+        # CHANGED 06/08/18 AS ONE OF THE FILES WAS CORRUPTED, AND COULDN'T BE READ BY NETCDF
+        # nc_file_u = nc.Dataset(file_path_u)
+        # nc_file_v = nc.Dataset(file_path_v)
+        try:
+            nc_file_u = nc.Dataset(file_path_u)
+        except IOError:
+            print('PROBLEM READING FILE:')
+            print(file_path_u)
+            print("It's size may be 0, and netCDF may have troubles opening corrupted file.")
+            dodgy_files.append(file_path_u)
+            continue
+
+        try:
+            nc_file_v = nc.Dataset(file_path_v)
+        except IOError:
+            print('PROBLEM READING FILE:')
+            print(file_path_v)
+            print("It's size may be 0, and netCDF may have troubles opening corrupted file.")
+            dodgy_files.append(file_path_v)
+            continue
+
+        # reads in model height
+        # Read in the model data heights. As data is 3x3 grid, take the central
+        # cell which overlays the observation location.
+
+        # finding the altitude from the model
+        site_format = look_up.premade_model_site_codes[sitechoice]
+        # finds altitude from function
+        altitude = find_altitude(site_format, model)
+
+        try:
+            model_heights_u = nc_file_u.variables['level_height'][:] + altitude
+
+        except KeyError as error:
+            dodgy_files.append(file_path_u)
+            print(' ')
+            print('ERROR HERE: ', file_path_u)
+            print("Could not read in ", error, " as this is not a variable in the file")
+            print(' ')
+            continue
+
+        # tests to make sure all files with just one variable (and not time/ height) are caught
+        try:
+            model_heights_v = nc_file_v.variables['level_height'][:] + altitude
+        except KeyError as error:
+            dodgy_files.append(file_path_v)
+            print(' ')
+            print('ERROR HERE: ', file_path_v)
+            print("Could not read in ", error, " as this is not a variable in the file")
+            print(' ')
+            continue
+
+        # check that the heights are the same between stash codes
+        assert model_heights_u == model_heights_v
+
+        # finds the closest value of model height to observation, and saves the index
+        # if there is no observation files, disheight will be returned as an empty list. So this list is replaced by
+        # 10 m, in order to still plot model files if they exist.
+        if target_height == []:
+            target_height = 10
+
+        # why am I doing this in this function?
+        # should be removed and done outside
+
+        # where model_options[model][2] is z0_index
+        # z0_index = look_up.model_options[model][2]
+        # height_index = np.abs(model_heights_u - (disheight + z0zd[z0_index])).argmin()
+
+        height_index = np.abs(model_heights_u - target_height).argmin()
+
+        # if 1D, won't have to unravel
+        height_value = model_heights_u[height_index]
+
+        # taking the next closest heights
+        height_index_0 = height_index - 1
+        height_index_2 = height_index + 1
+        height_value_0 = model_heights_u[height_index_0]
+        height_value_2 = model_heights_u[height_index_2]
+
+        # reads in time
+        # KSSW is a site with more letters than others, so it's handled differently when finding the date:
+        if sitechoice == 'KSSW':
+            start_index = -34
+            end_index = -26
+        elif sitechoice == 'BFCL':
+            start_index = -34
+            end_index = -26
+        elif sitechoice == 'MR':
+            start_index = -32
+            end_index = -24
+        elif sitechoice == 'NK':
+            start_index = -32
+            end_index = -24
+        else:
+            start_index = -33
+            end_index = -25
+
+        # DIFFERENT LENGTHS OF FILES...
+
+        # constructing midnight
+        # seen in ukv files
+        midnight_date = dt.datetime.strptime(str(file_path_u[start_index:end_index]), '%Y%m%d') + dt.timedelta(
+            days=1)
+        midnight = dt.time(0, 0)
+        midnight_datetime = dt.datetime.combine(midnight_date, midnight)
+
+        # constructing 21 Z
+        correct_date = dt.datetime.strptime(str(file_path_u[start_index:end_index]), '%Y%m%d')
+        correct_time = dt.time(21, 0)
+        correct_datetime = dt.datetime.combine(correct_date, correct_time)
+
+        # constructing 10 pm
+        # seen in lon files
+        ten_date = dt.datetime.strptime(str(file_path_u[start_index:end_index]), '%Y%m%d')
+        ten_time = dt.time(22, 0)
+        ten_datetime = dt.datetime.combine(ten_date, ten_time)
+
+        # NEED TO DO TIMES TWICE FOR BOTH STASH CODE FILES TO SEE IF I HAVE THE SAME TIMES!
+        # ----------------------------------------------------------------------------------------------------------
+        # U
+        # get time units for time conversion and start time
+        unit_start_time_u = nc_file_u.variables['time'].units
+
+        # Read in minutes since the start time and add it on
+        # Note: time_to_datetime needs time_since to be a list. Hence put value inside a single element list first
+        time_since_start_u = [np.squeeze(nc_file_u.variables['forecast_reference_time'])]
+
+        # create start time for model data
+        # time_to_datetime outputs a list of datetimes, so remove the single element from the list.
+        # time to datetime is an imported function
+        # Having to put a try/except in here, because some of the model files are dodgy and gove huge time arrays
+        # when converting to datetime
+        try:
+            run_start_time_u = time_to_datetime(unit_start_time_u, time_since_start_u)[0]
+        except:
+            dodgy_files.append(file_path_u)
+            print('DODGY FILE: TIME ARRAY NOT AS EXPECTED: ', np.shape(unit_start_time_u))
+            continue
+
+        # get number of forecast hours to add onto time_start
+        run_len_hours_u = np.squeeze(nc_file_u.variables['forecast_period'][:])
+
+        run_times_u = [run_start_time_u + dt.timedelta(seconds=hr * 3600) for hr in run_len_hours_u]
+
+        # if the time isn't exactly on the hour
+        if run_times_u[0].minute != 0 or run_times_u[0].second != 0 or run_times_u[0].microsecond != 0:
+            for i, item in enumerate(run_times_u):
+                # Rounds to nearest hour by adding a timedelta hour if minute >= 30
+                new_t = item.replace(second=0, microsecond=0, minute=0, hour=item.hour) + dt.timedelta(
+                    hours=item.minute // 30)
+
+                # if the difference between the time and the nearest hour is less than a minute and a half:
+                if abs(item - new_t) < dt.timedelta(minutes=1.5):
+                    run_times_u[i] = new_t
+                else:
+                    print('ERROR: DODGY FILE: ', file_path_u)
+                    print('THERE IS A TIME WITH A LARGER DIFFERENCE THAN 1.5 MINUTES TO THE HOUR: ', item)
+                    dodgy_files.append(file_path_u)
+                    continue
+
+        # does the model times start where it should? should start at 9, and I want to take all values from after
+        # the first 3 hours (allowing for spin up) - so ideally times should start at midnight for a perfect file
+        if run_times_u[0] == correct_datetime:
+            # index to start defined here, as different situations have a different start index.
+            # and these need to be considered when taking values, too. Otherwise, list lengths will be different.
+            index_to_start = 3
+        # if the file starts at midnight, don't need to adjust for spin up (as this is already not taking first
+        # 3 hours)
+        elif run_times_u[0] == midnight_datetime:
+            index_to_start = 0
+        # some files start at 10 pm? so therefore neglect forst 2 hours instead of 3 hours
+        elif run_times_u[0] == ten_datetime:
+            index_to_start = 2
+
+        else:
+            print(' ')
+            print('ERROR: DODGY FILE: previously unseen time length in this file: ', file_path_u)
+            print(len(run_times_u), 'start:', run_times_u[0], 'end:', run_times_u[-1])
+            print(' ')
+            dodgy_files.append(file_path_u)
+            continue
+
+        model_time_u = run_times_u[index_to_start:index_to_start + hoursbeforerepeat]
+
+        # check to see if all hours are consecutive by 1 hour...
+        flag = 0
+        for i in range(0, len(model_time_u) - 1):
+            if model_time_u[i + 1] == model_time_u[i] + dt.timedelta(hours=1):
+                pass
+            else:
+                print(' ')
+                print('ERROR: There is a jump in hours: ')
+                print(model_time_u[i], model_time_u[i + 1])
+                print('For file: ' + file_path_u)
+
+                flag = 1
+
+        if flag == 1:
+            dodgy_files.append(file_path_u)
+            continue
+
+        # ----------------------------------------------------------------------------------------------------------
+        # V
+        # get time units for time conversion and start time
+        unit_start_time_v = nc_file_v.variables['time'].units
+
+        # Read in minutes since the start time and add it on
+        # Note: time_to_datetime needs time_since to be a list. Hence put value inside a single element list first
+        time_since_start_v = [np.squeeze(nc_file_v.variables['forecast_reference_time'])]
+
+        # create start time for model data
+        # time_to_datetime outputs a list of datetimes, so remove the single element from the list.
+        # time to datetime is an imported function
+        # Having to put a try/except in here, because some of the model files are dodgy and gove huge time arrays
+        # when converting to datetime
+        try:
+            run_start_time_v = time_to_datetime(unit_start_time_v, time_since_start_v)[
+                0]  # time_to_datetime is a
+            # function defined at top
+        except:
+            dodgy_files.append(file_path_v)
+            print('DODGY FILE: TIME ARRAY NOT AS EXPECTED: ', np.shape(unit_start_time_v))
+            continue
+
+        # get number of forecast hours to add onto time_start
+        run_len_hours_v = np.squeeze(nc_file_v.variables['forecast_period'][:])
+
+        run_times_v = [run_start_time_v + dt.timedelta(seconds=hr * 3600) for hr in run_len_hours_v]
+
+        # if the time isn't exactly on the hour
+        if run_times_v[0].minute != 0 or run_times_v[0].second != 0 or run_times_v[0].microsecond != 0:
+            for i, item in enumerate(run_times_v):
+                # Rounds to nearest hour by adding a timedelta hour if minute >= 30
+                new_t = item.replace(second=0, microsecond=0, minute=0, hour=item.hour) + dt.timedelta(
+                    hours=item.minute // 30)
+
+                # if the difference between the time and the nearest hour is less than a minute and a half:
+                if abs(item - new_t) < dt.timedelta(minutes=1.5):
+                    run_times_v[i] = new_t
+                else:
+                    print('ERROR: DODGY FILE: ', file_path_v)
+                    print('THERE IS A TIME WITH A LARGER DIFFERENCE THAN 1.5 MINUTES TO THE HOUR: ', item)
+                    dodgy_files.append(file_path_v)
+                    continue
+
+        # does the model times start where it should? should start at 9, and I want to take all values from after
+        # the first 3 hours (allowing for spin up) - so ideally times should start at midnight for a perfect file
+        if run_times_v[0] == correct_datetime:
+            # index to start defined here, as different situations have a different start index.
+            # and these need to be considered when taking values, too. Otherwise, list lengths will be different.
+            index_to_startv = 3
+        # if the file starts at midnight, don't need to adjust for spin up (as this is already not taking first
+        # 3 hours)
+        elif run_times_v[0] == midnight_datetime:
+            index_to_startv = 0
+        # some files start at 10 pm? so therefore neglect forst 2 hours instead of 3 hours
+        elif run_times_v[0] == ten_datetime:
+            index_to_startv = 2
+
+        else:
+            print(' ')
+            print('ERROR: DODGY FILE: previously unseen time length in this file: ', file_path_v)
+            print(len(run_times_v), 'start:', run_times_v[0], 'end:', run_times_v[-1])
+            print(' ')
+            dodgy_files.append(file_path_v)
+            continue
+
+        model_time_v = run_times_v[index_to_startv:index_to_startv + hoursbeforerepeat]
+
+        # check to see if all hours are consecutive by 1 hour...
+        flag = 0
+        for i in range(0, len(model_time_v) - 1):
+            if model_time_v[i + 1] == model_time_v[i] + dt.timedelta(hours=1):
+                pass
+            else:
+                print(' ')
+                print('ERROR: There is a jump in hours: ')
+                print(model_time_v[i], model_time_v[i + 1])
+                print('For file: ' + file_path_v)
+
+                flag = 1
+
+        if flag == 1:
+            dodgy_files.append(file_path_v)
+            continue
+
+        # ----------------------------------------------------------------------------------------------------------
+        # TIME TESTS BETWEEN THE TWO LISTS TO SEE IF THEY ARE THE SAME
+        # if the 2 time lists start at the same time:
+        if model_time_u[0] == model_time_v[0]:
+            # if the 2 lists are the same length
+            if len(model_time_u) == len(model_time_v):
+                time_test_pass = True
+            # if the two lists are not the same length
+            else:
+                time_test_pass = False
+                # find all the indexes of items that are in one list but not the other
+                # first way round
+                index_list_uv = []
+                for i, item in enumerate(model_time_u):
+                    if item in model_time_v:
+                        pass
+                    else:
+                        index_list_uv.append(i)
+                # second way round
+                index_list_vu = []
+                for i, item in enumerate(model_time_v):
+                    if item in model_time_u:
+                        pass
+                    else:
+                        index_list_vu.append(i)
+
+                # if both lists have items in the index list, there is a problem
+                if len(index_list_uv) != 0 and len(index_list_vu) != 0:
+                    raise ValueError("Both time lists have items that the other one doesn't!")
+
+                # define the first index of an item that is on one and not the other
+                if len(index_list_uv) == 0:
+                    pass
+                else:
+                    index_diff = index_list_uv[0]
+
+                if len(index_list_vu) == 0:
+                    pass
+                else:
+                    index_diff = index_list_vu[0]
+
+        else:
+            raise ValueError('The two time lists do not start with the same time!', model_time_u[0], model_time_v[0])
+
+        # ----------------------------------------------------------------------------------------------------------
+        # Makes a choice about which grid to use.
+        # Defult grid choice is always 0 - this means centre grid is chosen (lat and lon idex both 1 - middle of 3x3
+        # of it's a letter, grid lon and lat defined here:
+        if grid_choice == 0:
+            # Defult val goes to centre grid, otherwise known as grid 'E':
+            index_lat = 1
+            index_lon = 1
+        elif grid_choice == 'A':
+            index_lat = 2
+            index_lon = 0
+        elif grid_choice == 'B':
+            index_lat = 2
+            index_lon = 1
+        elif grid_choice == 'C':
+            index_lat = 2
+            index_lon = 2
+        elif grid_choice == 'D':
+            index_lat = 1
+            index_lon = 0
+        elif grid_choice == 'E':
+            index_lat = 1
+            index_lon = 1
+        elif grid_choice == 'F':
+            index_lat = 1
+            index_lon = 2
+        elif grid_choice == 'G':
+            index_lat = 0
+            index_lon = 0
+        elif grid_choice == 'H':
+            index_lat = 0
+            index_lon = 1
+        elif grid_choice == 'I':
+            index_lat = 0
+            index_lon = 2
+        else:
+            raise ValueError('Grid choice: ', grid_choice, ' not an option.')
+
+        # ----------------------------------------------------------------------------------------------------------
+
+        # READS IN VALUES
+        # reads in u and v components of wind speed and direction
+        model_vars_u = nc_file_u.variables['eastward_wind']
+        model_vars_v = nc_file_v.variables['northward_wind']
+
+        # finds wind values at the closest model height to obs
+        var_vals_u = model_vars_u[index_lat, index_lon, index_to_start:index_to_start + hoursbeforerepeat,
+                     height_index]
+        var_vals_v = model_vars_v[index_lat, index_lon, index_to_start:index_to_start + hoursbeforerepeat,
+                     height_index]
+
+        # taking the next closest heights
+        var_vals_u_0 = model_vars_u[index_lat, index_lon, index_to_start:index_to_start + hoursbeforerepeat,
+                       height_index_0]
+        var_vals_u_2 = model_vars_u[index_lat, index_lon, index_to_start:index_to_start + hoursbeforerepeat,
+                       height_index_2]
+        var_vals_v_0 = model_vars_v[index_lat, index_lon, index_to_start:index_to_start + hoursbeforerepeat,
+                       height_index_0]
+        var_vals_v_2 = model_vars_v[index_lat, index_lon, index_to_start:index_to_start + hoursbeforerepeat,
+                       height_index_2]
+
+        # calculates wind speed and direction from u and v componants
+        if time_test_pass:
+            pass
+        else:
+            var_vals_v = var_vals_v[:index_diff - 1]
+            var_vals_u = var_vals_u[:index_diff - 1]
+
+        var_vals_wind = ((var_vals_u ** 2) + (var_vals_v ** 2)) ** 0.5
+        # http://weatherclasses.com/uploads/4/2/8/6/4286089/computing_wind_direction_and_speed_from_u_and_v.pdf
+        var_vals_dir = np.arctan2(var_vals_u, var_vals_v) * (180.0 / np.pi) + 180.0
+
+        # Ensuring the direction is between 0 and 360 degrees
+        for i in range(len(var_vals_dir)):
+            if var_vals_dir[i] < 0.0:
+                var_vals_dir[i] = var_vals_dir[i] + 360.0
+            if var_vals_dir[i] > 360.0:
+                var_vals_dir[i] = var_vals_dir[i] - 360.0
+
+        # other heights:
+        var_vals_wind_0 = ((var_vals_u_0 ** 2) + (var_vals_v_0 ** 2)) ** 0.5
+        var_vals_dir_0 = np.arctan2(var_vals_u_0, var_vals_v_0) * (180.0 / np.pi) + 180.0
+        for i in range(len(var_vals_dir_0)):
+            if var_vals_dir_0[i] < 0.0:
+                var_vals_dir_0[i] = var_vals_dir_0[i] + 360.0
+            if var_vals_dir_0[i] > 360.0:
+                var_vals_dir_0[i] = var_vals_dir_0[i] - 360.0
+
+        var_vals_wind_2 = ((var_vals_u_2 ** 2) + (var_vals_v_2 ** 2)) ** 0.5
+        var_vals_dir_2 = np.arctan2(var_vals_u_2, var_vals_v_2) * (180.0 / np.pi) + 180.0
+        for i in range(len(var_vals_dir_2)):
+            if var_vals_dir_2[i] < 0.0:
+                var_vals_dir_2[i] = var_vals_dir_2[i] + 360.0
+            if var_vals_dir_2[i] > 360.0:
+                var_vals_dir_2[i] = var_vals_dir_2[i] - 360.0
+
+        # append times to a list to plot outside of the for loop
+        for item in model_time_u:
+            time_dict[time].append(item)
+        # append winds to a list to plot outside of the for loop
+        for item in var_vals_wind:
+            wind_dict[wind].append(item)
+        # append direction to a list to plot outside of the for loop
+        for item in var_vals_dir:
+            dir_dict[direction].append(item)
+
+        # 3x3 grid average
+        shape_number = 2
+
+        u_means = []
+        v_means = []
+        for i in range(index_to_start, np.shape(model_vars_u)[shape_number]):
+            u_mean = np.mean(model_vars_u[:, :, i, height_index])
+            v_mean = np.mean(model_vars_v[:, :, i, height_index])
+            u_means.append(u_mean)
+            v_means.append(v_mean)
+
+        # calculates wind speed and direction from u and v components
+        wind_means = []
+        dir_means = []
+        for umean, vmean in zip(u_means, v_means):
+            wind_means_i = ((umean ** 2) + (vmean ** 2)) ** 0.5
+            dir_means_i = np.arctan2(umean, vmean) * (180.0 / np.pi) + 180.0
+            # Ensuring the direction is between 0 and 360 degrees
+            if dir_means_i < 0.0:
+                dir_means_i = dir_means_i + 360.0
+            if dir_means_i > 360.0:
+                dir_means_i = dir_means_i - 360.0
+
+            wind_means.append(wind_means_i)
+            dir_means.append(dir_means_i)
+
+        # append averages to a list to plot outside of the for loop
+        wind_dict_9[wind_9].append(wind_means)
+        dir_dict_9[dir_9].append(dir_means)
+
+        # taking the next closest heights
+        for item0 in var_vals_wind_0:
+            wind_dict_0[wind_0].append(item0)
+        for item2 in var_vals_wind_2:
+            wind_dict_2[wind_2].append(item2)
+        for item0 in var_vals_dir_0:
+            dir_dict_0[dir_0].append(item0)
+        for item2 in var_vals_dir_2:
+            dir_dict_2[dir_2].append(item2)
+
+    # print out any dodgy model files with huge time array lengths...
+    print('number of dodgy model files:', len(dodgy_files))
+    if len(dodgy_files) == 0:
+        pass
+    else:
+        print(dodgy_files)
+
+    # deletes placeholder
+    for item in wind_dict:
+        if wind_dict[item][0] == 'placeholder':
+            del wind_dict[item][0]
+    for item in time_dict:
+        if time_dict[item][0] == 'placeholder':
+            del time_dict[item][0]
+    for item in dir_dict:
+        if dir_dict[item][0] == 'placeholder':
+            del dir_dict[item][0]
+    for item in wind_dict_9:
+        if wind_dict_9[item][0] == 'placeholder':
+            del wind_dict_9[item][0]
+    for item in dir_dict_9:
+        if dir_dict_9[item][0] == 'placeholder':
+            del dir_dict_9[item][0]
+    for item in wind_dict_0:
+        if wind_dict_0[item][0] == 'placeholder':
+            del wind_dict_0[item][0]
+    for item in wind_dict_2:
+        if wind_dict_2[item][0] == 'placeholder':
+            del wind_dict_2[item][0]
+    for item in dir_dict_0:
+        if dir_dict_0[item][0] == 'placeholder':
+            del dir_dict_0[item][0]
+    for item in dir_dict_2:
+        if dir_dict_2[item][0] == 'placeholder':
+            del dir_dict_2[item][0]
+
+    # names to use for plotting in order - otherwise strange lines appear all over the plot,
+    # trying to link datetimes together
+    key_name_times = []
+    for item in sorted(time_dict):
+        key_name_times.append(item)
+    key_name_winds = []
+    for item in sorted(wind_dict):
+        key_name_winds.append(item)
+    key_name_dirs = []
+    for item in sorted(dir_dict):
+        key_name_dirs.append(item)
+    key_name_winds_9 = []
+    for item in sorted(wind_dict_9):
+        key_name_winds_9.append(item)
+    key_name_dirs_9 = []
+    for item in sorted(dir_dict_9):
+        key_name_dirs_9.append(item)
+    key_name_winds_0 = []
+    for item in sorted(wind_dict_0):
+        key_name_winds_0.append(item)
+    key_name_dirs_0 = []
+    for item in sorted(dir_dict_0):
+        key_name_dirs_0.append(item)
+    key_name_winds_2 = []
+    for item in sorted(wind_dict_2):
+        key_name_winds_2.append(item)
+    key_name_dirs_2 = []
+    for item in sorted(dir_dict_2):
+        key_name_dirs_2.append(item)
+
+    # A test to see if there are any repeated times within the London model, as part of the
+    # 'strange lines on plot' debugging
+    all_times = []
+    for item in key_name_times:
+        for time in time_dict[item][:hoursbeforerepeat]:
+            all_times.append(time)
+    print(' ')
+    print('Finding any duplicate times:')
+    if len(set([x for x in all_times if all_times.count(x) > 1])) == 0:
+        print('No duplicates')
+    else:
+        print(len(set([x for x in all_times if all_times.count(x) > 1])), 'Duplicates')
+        print(set([x for x in all_times if all_times.count(x) > 1]))
+
+    # dodgy files dealing with skipping times still for some reason appending the string name to string list. So here,
+    # I am being lazy and manually removing any lists with time length 0 before plotting
+    for wind, dir, windall, dirall, time in zip(key_name_winds, key_name_dirs,
+                                                key_name_winds_9, key_name_dirs_9,
+                                                key_name_times
+                                                ):
+
+        if len(time_dict[time][:hoursbeforerepeat]) == 0:
+            print('There was a time list which has length 0: ', time)
+
+            key_name_winds.remove(wind)
+            key_name_winds_9.remove(windall)
+            key_name_dirs.remove(dir)
+            key_name_dirs_9.remove(dirall)
+            key_name_times.remove(time)
+
+            # not sure I need these:
+            del time_dict[time]
+            del wind_dict[wind]
+            del wind_dict_9[windall]
+            del dir_dict[dir]
+            del dir_dict_9[dirall]
+
+    # plotting the differences between 3x3 averaged and centre grid
+    plt.figure(figsize=(20, 15))
+
+    ax1 = pyplot.subplot(2, 1, 1)
+    ax2 = pyplot.subplot(2, 1, 2)
+
+    mod_colour = look_up.model_options[model][1]
+
+    # for wind, time, direction in zip(key_name_winds_9, key_name_times, key_name_dirs_9):
+    #     if len(wind_dict_9[wind]) > 0:
+    #         plotCollection(ax1, time_dict[time][:], wind_dict_9[wind][0][:],
+    #                        'g')
+    #
+    #         plotCollection(ax2, time_dict[time][:],
+    #                        dir_dict_9[direction][0][:],
+    #                        'g', label="3x3 averaged %s @ %d m" % (model, height_value))
+
+    for wind, time, direction in zip(key_name_winds, key_name_times, key_name_dirs):
+        if len(wind_dict[wind]) > 0:
+            plotCollection(ax1, time_dict[time][:], wind_dict[wind][:],
+                           mod_colour)
+            plotCollection(ax2, time_dict[time][:], dir_dict[direction][:],
+                           mod_colour, label="%s @ %d m" % (model, height_value))
+
+    # Try here because if one stash code is missing, plot can't be made (I think)
+    # throws an error because 0 is not a date
+    try:
+        ax2.set_xlabel('DOY')
+        ax1.set_ylabel(label_string[0])
+        ax2.set_ylabel(label_string[1])
+        ax2.xaxis.set_major_formatter(DateFormatter('%j'))
+
+        date_for_title = 'DOY ' + str(DOYstart) + ' - ' + str(DOYstop)
+        plt.title(sitechoice + ': ' + date_for_title)
+
+        plt.gcf().autofmt_xdate()
+
+        pylab.savefig(savestring + str(variable) + '_' + str(model) + '_' + sitechoice + '_' +
+                      str(DOYstart) + '_' + str(DOYstop) + '.png', bbox_inches='tight')
+
+    except:
+        print('WIND PLOTS NOT MADE!!!')
+        height_value = 0
+        height_value_0 = 0
+        height_value_2 = 0
+
+    return (time_dict,
+            wind_dict,
+            dir_dict,
+            key_name_times,
+            key_name_winds,
+            key_name_dirs,
+            height_value,
+            all_times,
+            key_name_winds_9,
+            key_name_dirs_9,
+            key_name_winds_0,
+            key_name_dirs_0,
+            key_name_winds_2,
+            key_name_dirs_2,
+            height_value_0,
+            height_value_2,
+            wind_dict_9,
+            dir_dict_9,
+            wind_dict_0,
+            dir_dict_0,
+            wind_dict_2,
+            dir_dict_2)
+
+
 def retrieve_arrays_model(included_models, model_grid_choice):
     """
     Return arrays of model data after extract_model_data process

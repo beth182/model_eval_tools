@@ -11,9 +11,7 @@ def retrieve_UKV(scint_path,
                  DOYstop,
                  variable='H',
                  run='21Z',
-                 sample='1min_sa10min',
                  model_format='new',
-                 obs_level='L1',
                  sa_analysis=True,
                  av_disheight=False):
     """

@@ -43,7 +43,6 @@ def retrieve_UKV(scint_path,
 
 
             # get current directory
-            cwd = os.getcwd()
             csv_dir = os.path.dirname(os.path.realpath(__file__)).replace('\\', '/') + '/../sa_analysis_grids/ukv_grid_sa_percentages.csv'
 
             model_site_dict, percentage_vals_dict, percentage_covered_by_model = ukv_values_from_SA_analysis.prepare_model_grid_percentages(
@@ -170,7 +169,6 @@ def retrieve_UKV(scint_path,
             # kdown from all grids
 
             # get current directory
-            cwd = os.getcwd()
             csv_dir = os.path.dirname(os.path.realpath(__file__)).replace('\\', '/') + '/../sa_analysis_grids/ukv_grid_sa_percentages_all_grids.csv'
 
             model_site_dict_all, percentage_vals_dict_all, percentage_covered_by_model_all = ukv_values_from_SA_analysis.prepare_model_grid_percentages(

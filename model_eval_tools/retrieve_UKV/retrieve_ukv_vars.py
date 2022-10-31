@@ -1,5 +1,6 @@
 import datetime as dt
 import pandas as pd
+import os
 
 from model_eval_tools.retrieve_UKV import retrieve_ukv_vars_tools
 from model_eval_tools.sa_analysis_grids import ukv_values_from_SA_analysis
@@ -40,10 +41,16 @@ def retrieve_UKV(scint_path,
             sa_list = retrieve_ukv_vars_tools.find_source_area(time=time,
                                                                in_dir=in_dir_sa_list)
 
+
+            # get current directory
+            cwd = os.getcwd()
+            csv_dir = os.path.dirname(os.path.realpath(__file__)).replace('\\', '/') + '/../sa_analysis_grids/ukv_grid_sa_percentages.csv'
+
             model_site_dict, percentage_vals_dict, percentage_covered_by_model = ukv_values_from_SA_analysis.prepare_model_grid_percentages(
                 time=time,
                 sa_list=sa_list,
-                savepath=savepath)
+                savepath=savepath,
+                csv_path=csv_dir)
 
             # ToDo: hardcoding disheight here as 0. This is ok for now - as it's a surface stash code
             included_grids, model_site = ukv_values_from_SA_analysis.determine_which_model_files(model_site_dict,
@@ -161,11 +168,15 @@ def retrieve_UKV(scint_path,
         if sa_analysis == True:
             # kdown from all grids
 
+            # get current directory
+            cwd = os.getcwd()
+            csv_dir = os.path.dirname(os.path.realpath(__file__)).replace('\\', '/') + '/../sa_analysis_grids/ukv_grid_sa_percentages_all_grids.csv'
+
             model_site_dict_all, percentage_vals_dict_all, percentage_covered_by_model_all = ukv_values_from_SA_analysis.prepare_model_grid_percentages(
                 time=time,
                 sa_list=sa_list,
                 savepath=savepath,
-                csv_path='../sa_analysis_grids/ukv_grid_sa_percentages_all_grids.csv')
+                csv_path=csv_dir)
 
             included_grids_kdown_all, model_site_kdown_all = ukv_values_from_SA_analysis.determine_which_model_files(
                 model_site_dict_all,

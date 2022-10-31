@@ -1,10 +1,11 @@
 import pandas as pd
 import numpy as np
-import os
 
 
 def weight_lc_fractions(model_site_dict, percentage_vals_dict, DOYstart,
-                        lc_csv='C:/Users/beths/OneDrive - University of Reading/landuse/site grids/10-tile landuse (Maggie_new)/landuse_csv_files/all_grids_10T.csv'):
+                        lc_csv='C:/Users/beths/OneDrive - University of Reading/landuse/site grids/10-tile landuse (Maggie_new)/landuse_csv_files/all_grids_10T.csv',
+                        save_csv=False,
+                        csv_path=False):
     """
     Function which takes the UKV landcover fractions for each gridbox in the observation SA at given timestep,
     and weights the fractions accroding to SA weighting in that grid.
@@ -57,11 +58,10 @@ def weight_lc_fractions(model_site_dict, percentage_vals_dict, DOYstart,
 
     df = pd.concat(weighted_lc_dfs)
 
-    # get current directory
-    csv_dir = os.path.dirname(os.path.realpath(__file__)).replace('\\',
-                                                                  '/') + '/../sa_analysis_grids/ukv_grid_sa_percentages.csv'
-
-
-    df.to_csv('C:/Users/beths/Desktop/LANDING/weighted_lc_ukv_' + str(DOYstart) + '.csv')
+    # save csv if arg = True
+    if save_csv:
+        csv_name = 'weighted_lc_ukv_' + str(DOYstart) + '.csv'
+        df.to_csv(csv_path + csv_name)
+        print('csv file saved to: ', csv_path)
 
     return df

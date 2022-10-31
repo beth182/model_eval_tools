@@ -83,6 +83,7 @@ def retrieve_UKV(scint_path,
         else:
 
             model_site_dict = False
+            percentage_vals_dict = False
 
             file_dict_ukv_13 = find_model_files.find_UKV_files(DOYstart_mod,
                                                                DOYstop_mod,
@@ -212,6 +213,7 @@ def retrieve_UKV(scint_path,
 
         else:
             all_grids_kdown_dict = False
+            percentage_vals_dict = False
 
     else:
         all_grids_kdown_dict = False
@@ -263,11 +265,13 @@ def retrieve_UKV(scint_path,
         model_grid_vals['wind_direction'] = mod_vals_wd
 
         model_site_dict = False
+        percentage_vals_dict = False
 
         BL_H_z = ukv_wind[6]
 
     return {'model_grid_time': model_grid_time, 'model_grid_vals': model_grid_vals, 'model_site_dict': model_site_dict,
-            'BL_H_z': BL_H_z, 'savepath': savepath, 'all_grids_kdown_dict': all_grids_kdown_dict}
+            'BL_H_z': BL_H_z, 'savepath': savepath, 'all_grids_kdown_dict': all_grids_kdown_dict,
+            'percentage_vals_dict': percentage_vals_dict}
 
 
 def UKV_df(ukv_data_dict,

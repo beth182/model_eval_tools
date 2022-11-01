@@ -218,122 +218,15 @@ def extract_model_data(files,
         height_value_0 = model_heights[height_index_0]
         height_value_2 = model_heights[height_index_2]
 
-        # reads in time
-        # get time units for time conversion and start time
-        unit_start_time = nc_file.variables['time'].units
-
-        # Read in minutes since the start time and add it on
-        # Note: time_to_datetime needs time_since to be a list. Hence put value inside a single element list first
-        time_since_start = [np.squeeze(nc_file.variables['forecast_reference_time'])]
-
-        # create start time for model data
-        # time_to_datetime outputs a list of datetimes, so remove the single element from the list.
-        # time to datetime is an imported function
-        # Having to put a try/except in here, because some of the model files are dodgy and give huge time arrays
-        # when converting to datetime
+        # Handle model time
         try:
-            run_start_time = time_to_datetime(unit_start_time, time_since_start)[0]
-        except:
-            dodgy_files.append(file_path)
-            print('DODGY FILE: TIME ARRAY NOT AS EXPECTED: ', np.shape(unit_start_time))
-            continue
-
-        # get number of forecast hours to add onto time_start
-        run_len_hours = np.squeeze(nc_file.variables['forecast_period'][:])
-
-        run_times = [run_start_time + dt.timedelta(seconds=hr * 3600) for hr in run_len_hours]
-
-        # KSSW is a site with more letters than others, so it's handled differently when finding the date:
-        if sitechoice == 'KSSW':
-            start_index = -34
-            end_index = -26
-        elif sitechoice == 'BFCL':
-            start_index = -34
-            end_index = -26
-        elif sitechoice == 'MR':
-            start_index = -32
-            end_index = -24
-        elif sitechoice == 'NK':
-            start_index = -32
-            end_index = -24
-        else:
-            start_index = -33
-            end_index = -25
-
-        # DIFFERENT LENGTHS OF FILES...
-
-        # constructing midnight
-        # seen in ukv files
-        midnight_date = dt.datetime.strptime(str(file_path[start_index:end_index]), '%Y%m%d') + dt.timedelta(
-            days=1)
-        midnight = dt.time(0, 0)
-        midnight_datetime = dt.datetime.combine(midnight_date, midnight)
-
-        # constructing 21 Z
-        correct_date = dt.datetime.strptime(str(file_path[start_index:end_index]), '%Y%m%d')
-        correct_time = dt.time(21, 0)
-        correct_datetime = dt.datetime.combine(correct_date, correct_time)
-
-        # constructing 10 pm
-        # seen in lon files
-        ten_date = dt.datetime.strptime(str(file_path[start_index:end_index]), '%Y%m%d')
-        ten_time = dt.time(22, 0)
-        ten_datetime = dt.datetime.combine(ten_date, ten_time)
-
-        # if the time isn't exactly on the hour
-        if run_times[0].minute != 0 or run_times[0].second != 0 or run_times[0].microsecond != 0:
-            for i, item in enumerate(run_times):
-                # Rounds to nearest hour by adding a timedelta hour if minute >= 30
-                new_t = item.replace(second=0, microsecond=0, minute=0, hour=item.hour) + dt.timedelta(
-                    hours=item.minute // 30)
-
-                # if the difference between the time and the nearest hour is less than a minute and a half:
-                if abs(item - new_t) < dt.timedelta(minutes=1.5):
-                    run_times[i] = new_t
-                else:
-                    print('ERROR: DODGY FILE: ', file_path)
-                    print('THERE IS A TIME WITH A LARGER DIFFERENCE THAN 1.5 MINUTES TO THE HOUR: ', item)
-                    dodgy_files.append(file_path)
-                    continue
-
-        # Do the model times start where they should? should start at 2100, and I want to take all values from after
-        # the first 3 hours (allowing for spin up) - so ideally times should start at midnight for a perfect file
-        if run_times[0] == correct_datetime:
-            # index to start defined here, as different situations have a different start index.
-            # and these need to be considered when taking values, too. Otherwise, list lengths will be different.
-            index_to_start = 3
-        # if the file starts at midnight, don't need to adjust for spin up (as this is already not taking first
-        # 3 hours)
-        elif run_times[0] == midnight_datetime:
-            index_to_start = 0
-        # some files start at 10 pm? so therefore neglect forst 2 hours instead of 3 hours
-        elif run_times[0] == ten_datetime:
-            index_to_start = 2
-
-        else:
-            print(' ')
-            print('ERROR: DODGY FILE: previously unseen time length in this file: ', file_path)
-            print(len(run_times), 'start:', run_times[0], 'end:', run_times[-1])
-            print(' ')
+            time_dict_returns = handle_model_time(nc_file, file_path, sitechoice, hoursbeforerepeat)
+        except ValueError:
             dodgy_files.append(file_path)
             continue
 
-        model_time = run_times[index_to_start:index_to_start + hoursbeforerepeat]
-
-        # check to see if all hours are consecutive by 1 hour...
-        flag = 0
-        for i in range(0, len(model_time) - 1):
-            if model_time[i + 1] == model_time[i] + dt.timedelta(hours=1):
-                pass
-            else:
-                print(' ')
-                print('ERROR: There is a jump in hours: ')
-                print(model_time[i], model_time[i + 1])
-                print('For file: ' + file_path)
-                flag = 1
-        if flag == 1:
-            dodgy_files.append(file_path)
-            continue
+        index_to_start = time_dict_returns['index_to_start']
+        model_time = time_dict_returns['model_time']
 
         # Makes a choice about which grid to use
         grid_choice_dict = grid_choice_indexes(grid_choice)
@@ -864,212 +757,26 @@ def extract_model_data_wind(files,
         height_value_0 = model_heights_u[height_index_0]
         height_value_2 = model_heights_u[height_index_2]
 
-        # reads in time
-        # KSSW is a site with more letters than others, so it's handled differently when finding the date:
-        if sitechoice == 'KSSW':
-            start_index = -34
-            end_index = -26
-        elif sitechoice == 'BFCL':
-            start_index = -34
-            end_index = -26
-        elif sitechoice == 'MR':
-            start_index = -32
-            end_index = -24
-        elif sitechoice == 'NK':
-            start_index = -32
-            end_index = -24
-        else:
-            start_index = -33
-            end_index = -25
-
-        # DIFFERENT LENGTHS OF FILES...
-
-        # constructing midnight
-        # seen in ukv files
-        midnight_date = dt.datetime.strptime(str(file_path_u[start_index:end_index]), '%Y%m%d') + dt.timedelta(
-            days=1)
-        midnight = dt.time(0, 0)
-        midnight_datetime = dt.datetime.combine(midnight_date, midnight)
-
-        # constructing 21 Z
-        correct_date = dt.datetime.strptime(str(file_path_u[start_index:end_index]), '%Y%m%d')
-        correct_time = dt.time(21, 0)
-        correct_datetime = dt.datetime.combine(correct_date, correct_time)
-
-        # constructing 10 pm
-        # seen in lon files
-        ten_date = dt.datetime.strptime(str(file_path_u[start_index:end_index]), '%Y%m%d')
-        ten_time = dt.time(22, 0)
-        ten_datetime = dt.datetime.combine(ten_date, ten_time)
-
-        # NEED TO DO TIMES TWICE FOR BOTH STASH CODE FILES TO SEE IF I HAVE THE SAME TIMES!
-        # ----------------------------------------------------------------------------------------------------------
-        # U
-        # get time units for time conversion and start time
-        unit_start_time_u = nc_file_u.variables['time'].units
-
-        # Read in minutes since the start time and add it on
-        # Note: time_to_datetime needs time_since to be a list. Hence put value inside a single element list first
-        time_since_start_u = [np.squeeze(nc_file_u.variables['forecast_reference_time'])]
-
-        # create start time for model data
-        # time_to_datetime outputs a list of datetimes, so remove the single element from the list.
-        # time to datetime is an imported function
-        # Having to put a try/except in here, because some of the model files are dodgy and gove huge time arrays
-        # when converting to datetime
+        # Handle model time
+        # u stash code
         try:
-            run_start_time_u = time_to_datetime(unit_start_time_u, time_since_start_u)[0]
-        except:
-            dodgy_files.append(file_path_u)
-            print('DODGY FILE: TIME ARRAY NOT AS EXPECTED: ', np.shape(unit_start_time_u))
-            continue
-
-        # get number of forecast hours to add onto time_start
-        run_len_hours_u = np.squeeze(nc_file_u.variables['forecast_period'][:])
-
-        run_times_u = [run_start_time_u + dt.timedelta(seconds=hr * 3600) for hr in run_len_hours_u]
-
-        # if the time isn't exactly on the hour
-        if run_times_u[0].minute != 0 or run_times_u[0].second != 0 or run_times_u[0].microsecond != 0:
-            for i, item in enumerate(run_times_u):
-                # Rounds to nearest hour by adding a timedelta hour if minute >= 30
-                new_t = item.replace(second=0, microsecond=0, minute=0, hour=item.hour) + dt.timedelta(
-                    hours=item.minute // 30)
-
-                # if the difference between the time and the nearest hour is less than a minute and a half:
-                if abs(item - new_t) < dt.timedelta(minutes=1.5):
-                    run_times_u[i] = new_t
-                else:
-                    print('ERROR: DODGY FILE: ', file_path_u)
-                    print('THERE IS A TIME WITH A LARGER DIFFERENCE THAN 1.5 MINUTES TO THE HOUR: ', item)
-                    dodgy_files.append(file_path_u)
-                    continue
-
-        # does the model times start where it should? should start at 9, and I want to take all values from after
-        # the first 3 hours (allowing for spin up) - so ideally times should start at midnight for a perfect file
-        if run_times_u[0] == correct_datetime:
-            # index to start defined here, as different situations have a different start index.
-            # and these need to be considered when taking values, too. Otherwise, list lengths will be different.
-            index_to_start = 3
-        # if the file starts at midnight, don't need to adjust for spin up (as this is already not taking first
-        # 3 hours)
-        elif run_times_u[0] == midnight_datetime:
-            index_to_start = 0
-        # some files start at 10 pm? so therefore neglect forst 2 hours instead of 3 hours
-        elif run_times_u[0] == ten_datetime:
-            index_to_start = 2
-
-        else:
-            print(' ')
-            print('ERROR: DODGY FILE: previously unseen time length in this file: ', file_path_u)
-            print(len(run_times_u), 'start:', run_times_u[0], 'end:', run_times_u[-1])
-            print(' ')
+            time_dict_returns_u = handle_model_time(nc_file_u, file_path_u, sitechoice, hoursbeforerepeat)
+        except ValueError:
             dodgy_files.append(file_path_u)
             continue
 
-        model_time_u = run_times_u[index_to_start:index_to_start + hoursbeforerepeat]
+        index_to_start = time_dict_returns_u['index_to_start']
+        model_time_u = time_dict_returns_u['model_time']
 
-        # check to see if all hours are consecutive by 1 hour...
-        flag = 0
-        for i in range(0, len(model_time_u) - 1):
-            if model_time_u[i + 1] == model_time_u[i] + dt.timedelta(hours=1):
-                pass
-            else:
-                print(' ')
-                print('ERROR: There is a jump in hours: ')
-                print(model_time_u[i], model_time_u[i + 1])
-                print('For file: ' + file_path_u)
-
-                flag = 1
-
-        if flag == 1:
-            dodgy_files.append(file_path_u)
-            continue
-
-        # ----------------------------------------------------------------------------------------------------------
-        # V
-        # get time units for time conversion and start time
-        unit_start_time_v = nc_file_v.variables['time'].units
-
-        # Read in minutes since the start time and add it on
-        # Note: time_to_datetime needs time_since to be a list. Hence put value inside a single element list first
-        time_since_start_v = [np.squeeze(nc_file_v.variables['forecast_reference_time'])]
-
-        # create start time for model data
-        # time_to_datetime outputs a list of datetimes, so remove the single element from the list.
-        # time to datetime is an imported function
-        # Having to put a try/except in here, because some of the model files are dodgy and gove huge time arrays
-        # when converting to datetime
+        # v stash code
         try:
-            run_start_time_v = time_to_datetime(unit_start_time_v, time_since_start_v)[
-                0]  # time_to_datetime is a
-            # function defined at top
-        except:
-            dodgy_files.append(file_path_v)
-            print('DODGY FILE: TIME ARRAY NOT AS EXPECTED: ', np.shape(unit_start_time_v))
-            continue
-
-        # get number of forecast hours to add onto time_start
-        run_len_hours_v = np.squeeze(nc_file_v.variables['forecast_period'][:])
-
-        run_times_v = [run_start_time_v + dt.timedelta(seconds=hr * 3600) for hr in run_len_hours_v]
-
-        # if the time isn't exactly on the hour
-        if run_times_v[0].minute != 0 or run_times_v[0].second != 0 or run_times_v[0].microsecond != 0:
-            for i, item in enumerate(run_times_v):
-                # Rounds to nearest hour by adding a timedelta hour if minute >= 30
-                new_t = item.replace(second=0, microsecond=0, minute=0, hour=item.hour) + dt.timedelta(
-                    hours=item.minute // 30)
-
-                # if the difference between the time and the nearest hour is less than a minute and a half:
-                if abs(item - new_t) < dt.timedelta(minutes=1.5):
-                    run_times_v[i] = new_t
-                else:
-                    print('ERROR: DODGY FILE: ', file_path_v)
-                    print('THERE IS A TIME WITH A LARGER DIFFERENCE THAN 1.5 MINUTES TO THE HOUR: ', item)
-                    dodgy_files.append(file_path_v)
-                    continue
-
-        # does the model times start where it should? should start at 9, and I want to take all values from after
-        # the first 3 hours (allowing for spin up) - so ideally times should start at midnight for a perfect file
-        if run_times_v[0] == correct_datetime:
-            # index to start defined here, as different situations have a different start index.
-            # and these need to be considered when taking values, too. Otherwise, list lengths will be different.
-            index_to_startv = 3
-        # if the file starts at midnight, don't need to adjust for spin up (as this is already not taking first
-        # 3 hours)
-        elif run_times_v[0] == midnight_datetime:
-            index_to_startv = 0
-        # some files start at 10 pm? so therefore neglect forst 2 hours instead of 3 hours
-        elif run_times_v[0] == ten_datetime:
-            index_to_startv = 2
-
-        else:
-            print(' ')
-            print('ERROR: DODGY FILE: previously unseen time length in this file: ', file_path_v)
-            print(len(run_times_v), 'start:', run_times_v[0], 'end:', run_times_v[-1])
-            print(' ')
+            time_dict_returns_v = handle_model_time(nc_file_v, file_path_v, sitechoice, hoursbeforerepeat)
+        except ValueError:
             dodgy_files.append(file_path_v)
             continue
 
-        model_time_v = run_times_v[index_to_startv:index_to_startv + hoursbeforerepeat]
-
-        # check to see if all hours are consecutive by 1 hour...
-        flag = 0
-        for i in range(0, len(model_time_v) - 1):
-            if model_time_v[i + 1] == model_time_v[i] + dt.timedelta(hours=1):
-                pass
-            else:
-                print(' ')
-                print('ERROR: There is a jump in hours: ')
-                print(model_time_v[i], model_time_v[i + 1])
-                print('For file: ' + file_path_v)
-
-                flag = 1
-
-        if flag == 1:
-            dodgy_files.append(file_path_v)
-            continue
+        index_to_startv = time_dict_returns_v['index_to_start']
+        model_time_v = time_dict_returns_v['model_time']
 
         # ----------------------------------------------------------------------------------------------------------
         # TIME TESTS BETWEEN THE TWO LISTS TO SEE IF THEY ARE THE SAME
@@ -1567,3 +1274,123 @@ def grid_choice_indexes(grid_choice):
 
     return {'index_lat': index_lat,
             'index_lon': index_lon}
+
+
+def handle_model_time(nc_file,
+                      file_path,
+                      sitechoice,
+                      hoursbeforerepeat):
+    """
+    Function to handle reading model forecast time.
+    :return:
+    """
+
+    # reads in time
+    # get time units for time conversion and start time
+    unit_start_time = nc_file.variables['time'].units
+
+    # Read in minutes since the start time and add it on
+    # Note: time_to_datetime needs time_since to be a list. Hence put value inside a single element list first
+    time_since_start = [np.squeeze(nc_file.variables['forecast_reference_time'])]
+
+    # create start time for model data
+    # time_to_datetime outputs a list of datetimes, so remove the single element from the list.
+    # time to datetime is an imported function
+    # Having to put a try/except in here, because some of the model files are dodgy and give huge time arrays
+    # when converting to datetime
+    try:
+        run_start_time = time_to_datetime(unit_start_time, time_since_start)[0]
+    except:
+        raise ValueError('DODGY FILE: TIME ARRAY NOT AS EXPECTED: ', np.shape(unit_start_time))
+
+    # get number of forecast hours to add onto time_start
+    run_len_hours = np.squeeze(nc_file.variables['forecast_period'][:])
+
+    run_times = [run_start_time + dt.timedelta(seconds=hr * 3600) for hr in run_len_hours]
+
+    # KSSW is a site with more letters than others, so it's handled differently when finding the date:
+    if sitechoice == 'KSSW':
+        start_index = -34
+        end_index = -26
+    elif sitechoice == 'BFCL':
+        start_index = -34
+        end_index = -26
+    elif sitechoice == 'MR':
+        start_index = -32
+        end_index = -24
+    elif sitechoice == 'NK':
+        start_index = -32
+        end_index = -24
+    else:
+        start_index = -33
+        end_index = -25
+
+    # DIFFERENT LENGTHS OF FILES...
+
+    # constructing midnight
+    # seen in ukv files
+    midnight_date = dt.datetime.strptime(str(file_path[start_index:end_index]), '%Y%m%d') + dt.timedelta(
+        days=1)
+    midnight = dt.time(0, 0)
+    midnight_datetime = dt.datetime.combine(midnight_date, midnight)
+
+    # constructing 21 Z
+    correct_date = dt.datetime.strptime(str(file_path[start_index:end_index]), '%Y%m%d')
+    correct_time = dt.time(21, 0)
+    correct_datetime = dt.datetime.combine(correct_date, correct_time)
+
+    # constructing 10 pm
+    # seen in lon files
+    ten_date = dt.datetime.strptime(str(file_path[start_index:end_index]), '%Y%m%d')
+    ten_time = dt.time(22, 0)
+    ten_datetime = dt.datetime.combine(ten_date, ten_time)
+
+    # if the time isn't exactly on the hour
+    if run_times[0].minute != 0 or run_times[0].second != 0 or run_times[0].microsecond != 0:
+        for i, item in enumerate(run_times):
+            # Rounds to nearest hour by adding a timedelta hour if minute >= 30
+            new_t = item.replace(second=0, microsecond=0, minute=0, hour=item.hour) + dt.timedelta(
+                hours=item.minute // 30)
+
+            # if the difference between the time and the nearest hour is less than a minute and a half:
+            if abs(item - new_t) < dt.timedelta(minutes=1.5):
+                run_times[i] = new_t
+            else:
+                raise ValueError('THERE IS A TIME WITH A LARGER DIFFERENCE THAN 1.5 MINUTES TO THE HOUR: ', item)
+
+    # Do the model times start where they should? should start at 2100, and I want to take all values from after
+    # the first 3 hours (allowing for spin up) - so ideally times should start at midnight for a perfect file
+    if run_times[0] == correct_datetime:
+        # index to start defined here, as different situations have a different start index.
+        # and these need to be considered when taking values, too. Otherwise, list lengths will be different.
+        index_to_start = 3
+    # if the file starts at midnight, don't need to adjust for spin up (as this is already not taking first
+    # 3 hours)
+    elif run_times[0] == midnight_datetime:
+        index_to_start = 0
+    # some files start at 10 pm? so therefore neglect forst 2 hours instead of 3 hours
+    elif run_times[0] == ten_datetime:
+        index_to_start = 2
+
+    else:
+        print(' ')
+        print(len(run_times), 'start:', run_times[0], 'end:', run_times[-1])
+        raise ValueError('ERROR: DODGY FILE: previously unseen time length in this file: ', file_path)
+
+    model_time = run_times[index_to_start:index_to_start + hoursbeforerepeat]
+
+    # check to see if all hours are consecutive by 1 hour...
+    flag = 0
+    for i in range(0, len(model_time) - 1):
+        if model_time[i + 1] == model_time[i] + dt.timedelta(hours=1):
+            pass
+        else:
+            print(' ')
+            print('ERROR: There is a jump in hours: ')
+            print(model_time[i], model_time[i + 1])
+            print('For file: ' + file_path)
+            flag = 1
+    if flag == 1:
+        raise ValueError('Times are not consecutive by 1 hour')
+
+    return {'index_to_start': index_to_start, 'model_time': model_time}

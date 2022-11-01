@@ -335,43 +335,10 @@ def extract_model_data(files,
             dodgy_files.append(file_path)
             continue
 
-        # Makes a choice about which grid to use. For NEW file format:
-        # Defult grid choice is always 0 - this means centre grid is chosen (lat and lon idex both 1 - middle of 3x3
-        # of it's a letter, grid lon and lat defined here:
-        if grid_choice == 0:
-            # Defult val goes to centre grid, otherwise known as grid 'E':
-            index_lat = 1
-            index_lon = 1
-
-        elif grid_choice == 'A':
-            index_lat = 2
-            index_lon = 0
-        elif grid_choice == 'B':
-            index_lat = 2
-            index_lon = 1
-        elif grid_choice == 'C':
-            index_lat = 2
-            index_lon = 2
-        elif grid_choice == 'D':
-            index_lat = 1
-            index_lon = 0
-        elif grid_choice == 'E':
-            index_lat = 1
-            index_lon = 1
-        elif grid_choice == 'F':
-            index_lat = 1
-            index_lon = 2
-        elif grid_choice == 'G':
-            index_lat = 0
-            index_lon = 0
-        elif grid_choice == 'H':
-            index_lat = 0
-            index_lon = 1
-        elif grid_choice == 'I':
-            index_lat = 0
-            index_lon = 2
-        else:
-            raise ValueError('Grid choice: ', grid_choice, ' not an option.')
+        # Makes a choice about which grid to use
+        grid_choice_dict = grid_choice_indexes(grid_choice)
+        index_lat = grid_choice_dict['index_lat']
+        index_lon = grid_choice_dict['index_lon']
 
         # READS IN VALUES
         if variable == 'Tair':
@@ -1150,41 +1117,9 @@ def extract_model_data_wind(files,
 
         # ----------------------------------------------------------------------------------------------------------
         # Makes a choice about which grid to use.
-        # Defult grid choice is always 0 - this means centre grid is chosen (lat and lon idex both 1 - middle of 3x3
-        # of it's a letter, grid lon and lat defined here:
-        if grid_choice == 0:
-            # Defult val goes to centre grid, otherwise known as grid 'E':
-            index_lat = 1
-            index_lon = 1
-        elif grid_choice == 'A':
-            index_lat = 2
-            index_lon = 0
-        elif grid_choice == 'B':
-            index_lat = 2
-            index_lon = 1
-        elif grid_choice == 'C':
-            index_lat = 2
-            index_lon = 2
-        elif grid_choice == 'D':
-            index_lat = 1
-            index_lon = 0
-        elif grid_choice == 'E':
-            index_lat = 1
-            index_lon = 1
-        elif grid_choice == 'F':
-            index_lat = 1
-            index_lon = 2
-        elif grid_choice == 'G':
-            index_lat = 0
-            index_lon = 0
-        elif grid_choice == 'H':
-            index_lat = 0
-            index_lon = 1
-        elif grid_choice == 'I':
-            index_lat = 0
-            index_lon = 2
-        else:
-            raise ValueError('Grid choice: ', grid_choice, ' not an option.')
+        grid_choice_dict = grid_choice_indexes(grid_choice)
+        index_lat = grid_choice_dict['index_lat']
+        index_lon = grid_choice_dict['index_lon']
 
         # ----------------------------------------------------------------------------------------------------------
 
@@ -1586,3 +1521,49 @@ def plotCollection(ax, xs, ys, *args, **kwargs):
                 newHandles.append(handle)
         # pyplot.legend(newHandles, newLabels, loc='upper left', bbox_to_anchor=(1, 0.5), fontsize=12)
         plt.legend(newHandles, newLabels, bbox_to_anchor=(1, 0.5), fontsize=15, loc='center left')
+
+
+def grid_choice_indexes(grid_choice):
+    """
+    Function to return the lat and lon index of a pre-made model file, when given the grid letter
+    Defult grid choice is always 0 - this means centre grid is chosen (lat and lon idex both 1 - middle of 3x3
+    or it's a letter, grid lon and lat defined here:
+    :return:
+    """
+
+    if grid_choice == 0:
+        # Defult val goes to centre grid, otherwise known as grid 'E':
+        index_lat = 1
+        index_lon = 1
+    elif grid_choice == 'A':
+        index_lat = 2
+        index_lon = 0
+    elif grid_choice == 'B':
+        index_lat = 2
+        index_lon = 1
+    elif grid_choice == 'C':
+        index_lat = 2
+        index_lon = 2
+    elif grid_choice == 'D':
+        index_lat = 1
+        index_lon = 0
+    elif grid_choice == 'E':
+        index_lat = 1
+        index_lon = 1
+    elif grid_choice == 'F':
+        index_lat = 1
+        index_lon = 2
+    elif grid_choice == 'G':
+        index_lat = 0
+        index_lon = 0
+    elif grid_choice == 'H':
+        index_lat = 0
+        index_lon = 1
+    elif grid_choice == 'I':
+        index_lat = 0
+        index_lon = 2
+    else:
+        raise ValueError('Grid choice: ', grid_choice, ' not an option.')
+
+    return {'index_lat': index_lat,
+            'index_lon': index_lon}

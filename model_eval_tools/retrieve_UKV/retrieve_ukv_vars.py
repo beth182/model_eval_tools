@@ -159,6 +159,7 @@ def retrieve_UKV(scint_path,
 
         if variable == 'BL_H':
             model_site_dict = False
+            percentage_vals_dict = False
 
     else:
         BL_H_z = False

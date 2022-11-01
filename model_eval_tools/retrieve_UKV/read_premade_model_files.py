@@ -1279,7 +1279,7 @@ def grid_choice_indexes(grid_choice):
 def handle_model_time(nc_file,
                       file_path,
                       sitechoice,
-                      hoursbeforerepeat):
+                      hoursbeforerepeat=24):
     """
     Function to handle reading model forecast time.
     :return:

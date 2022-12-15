@@ -34,7 +34,7 @@ def SA_grid_percentages(raster_path, save_path, time_string):
 
     # Subsetting the raster
     # To focus the raster down to a grid, we can use the grid data, which we converted into geographic information
-    gpkg_dir_path = 'C:/Users/beths/Desktop/LANDING/grid_gpkg_files/'
+    gpkg_dir_path = 'C:/Users/beths/OneDrive - University of Reading/UKV_grid_objects/grid_gpkg_files/'
 
     # plotting all grids against raster data
     f = plt.figure(figsize=(20, 20))

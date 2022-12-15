@@ -33,7 +33,7 @@ def retrieve_UKV(scint_path,
 
         if sa_analysis == True:
 
-            in_dir_sa_list = 'C:/Users/beths/Desktop/LANDING/fp_output/' + str(DOYstart)[4:] + '/hourly/'
+            in_dir_sa_list = 'C:/Users/beths/OneDrive - University of Reading/local_runs_data/fp_output/' + str(DOYstart)[4:] + '/hourly/'
 
             time = retrieve_ukv_vars_tools.retrieve_SA_hours(in_dir_sa_list, DOYstart)
 
@@ -91,7 +91,7 @@ def retrieve_UKV(scint_path,
                                                                run,
                                                                variable,
                                                                model_path="//rdg-home.ad.rdg.ac.uk/research-nfs/basic/micromet/Tier_processing/rv006011/new_data_storage/"
-                                                               # model_path='C:/Users/beths/Desktop/LANDING/data_wifi_problems/data/'
+                                                               # model_path='C:/Users/beths/OneDrive - University of Reading/local_runs_data/data_wifi_problems/data/'
                                                                )
 
             files_ukv_13 = find_model_files.order_model_stashes(file_dict_ukv_13, variable)
@@ -130,7 +130,7 @@ def retrieve_UKV(scint_path,
                                                                 run,
                                                                 'BL_H',
                                                                 model_path="//rdg-home.ad.rdg.ac.uk/research-nfs/basic/micromet/Tier_processing/rv006011/new_data_storage/"
-                                                                # model_path='C:/Users/beths/Desktop/LANDING/data_wifi_problems/data/'
+                                                                # model_path='C:/Users/beths/OneDrive - University of Reading/local_runs_data/data_wifi_problems/data/'
                                                                 )
 
         files_ukv_BL_H_13 = find_model_files.order_model_stashes(file_dict_ukv_BL_H_13, 'BL_H')
@@ -226,7 +226,7 @@ def retrieve_UKV(scint_path,
                                                              run,
                                                              'wind',
                                                              model_path="//rdg-home.ad.rdg.ac.uk/research-nfs/basic/micromet/Tier_processing/rv006011/new_data_storage/"
-                                                             # model_path='C:/Users/beths/Desktop/LANDING/data_wifi_problems/data/'
+                                                             # model_path='C:/Users/beths/OneDrive - University of Reading/local_runs_data/data_wifi_problems/data/'
                                                              )
 
         files_ukv_wind = find_model_files.order_model_stashes(file_dict_ukv_wind, 'wind')

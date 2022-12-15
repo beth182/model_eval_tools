@@ -120,7 +120,7 @@ def retrieve_SA_hours(sa_dir_in, DOY):
 
 
 def find_source_area(time,
-                     in_dir='C:/Users/beths/Desktop/LANDING/fp_output/hourly/',
+                     in_dir='C:/Users/beths/OneDrive - University of Reading/local_runs_data/fp_output/hourly/',
                      name_start='BCT_IMU_15000_'):
     """
     Function to find a given time's source area tif file.

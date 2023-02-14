@@ -12,8 +12,7 @@ from model_eval_tools.retrieve_UKV import find_model_files
 def retrieve_UKV(run_choices,
                  DOYstart,
                  DOYstop,
-                 sa_analysis=True,
-                 av_disheight=False):
+                 sa_analysis=True):
     """
     """
 
@@ -21,8 +20,12 @@ def retrieve_UKV(run_choices,
     variable = run_choices['variable']
     run = run_choices['run_time']
 
+    # look up what site and grid letter I want based on grid number in run_choices
+    grid_number = run_choices['grid_number']
+    grid_name = look_up.grid_dict_lc[grid_number][0]
+    site, grid_letter = grid_name.split(' ')
+
     setup_run_dict = retrieve_ukv_vars_tools.UKV_setup_run(scint_path, variable, DOYstart, DOYstop)
-    site = setup_run_dict['site']
     savepath = setup_run_dict['save_folder']
 
     return_model_DOY_dict = retrieve_ukv_vars_tools.UKV_return_model_DOY(DOYstart, DOYstop, run)
@@ -33,8 +36,6 @@ def retrieve_UKV(run_choices,
     model_grid_time = {}
 
     if variable == 'H' or variable == 'kdown':
-
-        # ToDo: Changes made to the input not updated for the surface stash code
 
         if sa_analysis == True:
 
@@ -56,7 +57,7 @@ def retrieve_UKV(run_choices,
                 savepath=savepath,
                 csv_path=csv_dir)
 
-            # ToDo: hardcoding disheight here as 0. This is ok for now - as it's a surface stash code
+            # hardcoding disheight here as 0. This is ok for now - as it's a surface stash code
             included_grids, model_site = ukv_values_from_SA_analysis.determine_which_model_files(model_site_dict,
                                                                                                  DOYstart_mod,
                                                                                                  DOYstop_mod,
@@ -89,7 +90,7 @@ def retrieve_UKV(run_choices,
             model_site_dict = False
             percentage_vals_dict = False
 
-            file_dict_ukv_13 = find_model_files.find_UKV_files(DOYstart_mod,
+            file_dict_ukv = find_model_files.find_UKV_files(DOYstart_mod,
                                                                DOYstop_mod,
                                                                site,
                                                                'ukv',
@@ -99,10 +100,10 @@ def retrieve_UKV(run_choices,
                                                                # model_path='C:/Users/beths/OneDrive - University of Reading/local_runs_data/data_wifi_problems/data/'
                                                                )
 
-            files_ukv_13 = find_model_files.order_model_stashes(file_dict_ukv_13, variable)
+            files_ukv = find_model_files.order_model_stashes(file_dict_ukv, variable)
 
             # height still hardcoded 0 as it's a surface stash code
-            ukv_13 = read_premade_model_files.extract_model_data(files_ukv_13,
+            ukv = read_premade_model_files.extract_model_data(files_ukv,
                                                                  DOYstart_mod,
                                                                  DOYstop_mod,
                                                                  variable,
@@ -110,28 +111,22 @@ def retrieve_UKV(run_choices,
                                                                  0,
                                                                  site,
                                                                  savepath,
-                                                                 grid_choice='E')
+                                                                 grid_choice=grid_letter)
 
-            H_13_list = [ukv_13[5], ukv_13[6], ukv_13[0], ukv_13[1], ukv_13[10]]
-            included_H = {'13': H_13_list}
+            H_list = [ukv[5], ukv[6], ukv[0], ukv[1], ukv[10]]
+            included_H = {grid_number: H_list}
 
-            mod_time_13, mod_vals_13 = read_premade_model_files.retrieve_arrays_model(included_H, '13')
-            model_grid_vals['13'] = mod_vals_13
+            mod_time, mod_vals = read_premade_model_files.retrieve_arrays_model(included_H, grid_number)
+            model_grid_vals[grid_number] = mod_vals
 
             if variable == 'kdown':
                 # push kdown vals forward by 15 mins - as model output is 15 min average time starting
-                model_grid_time['13'] = mod_time_13 + dt.timedelta(minutes=15)
+                model_grid_time[grid_number] = mod_time + dt.timedelta(minutes=15)
 
             else:
-                model_grid_time['13'] = mod_time_13
+                model_grid_time[grid_number] = mod_time
 
     if variable == 'H' or variable == 'BL_H':  # even if var choice is just H, BL_H output is also currently included
-
-        # look up what site and grid letter I want based on grid number in run_choices
-        grid_number = run_choices['grid_number']
-
-        grid_name = look_up.grid_dict_lc[grid_number][0]
-        site, grid_letter = grid_name.split(' ')
 
         file_dict_ukv_BL_H = find_model_files.find_UKV_files(DOYstart_mod,
                                                                 DOYstop_mod,
@@ -230,25 +225,25 @@ def retrieve_UKV(run_choices,
         # finding UKV files
         file_dict_ukv_wind = find_model_files.find_UKV_files(DOYstart_mod,
                                                              DOYstop_mod,
-                                                             'IMU',
+                                                             site,
                                                              'ukv',
                                                              run,
-                                                             'wind',
+                                                             variable,
                                                              model_path="//rdg-home.ad.rdg.ac.uk/research-nfs/basic/micromet/Tier_processing/rv006011/new_data_storage/"
                                                              # model_path='C:/Users/beths/OneDrive - University of Reading/local_runs_data/data_wifi_problems/data/'
                                                              )
 
-        files_ukv_wind = find_model_files.order_model_stashes(file_dict_ukv_wind, 'wind')
+        files_ukv_wind = find_model_files.order_model_stashes(file_dict_ukv_wind, variable)
 
         ukv_wind = read_premade_model_files.extract_model_data_wind(files_ukv_wind,
                                                                     DOYstart,
                                                                     DOYstop,
-                                                                    'wind',
+                                                                    variable,
                                                                     'ukv',
-                                                                    av_disheight,
-                                                                    'BCT',
+                                                                    run_choices['target_height'],
+                                                                    site,
                                                                     savepath,
-                                                                    grid_choice='E')
+                                                                    grid_choice=grid_letter)
 
         # define dict for included models
         included_models_ws = {}

@@ -173,7 +173,7 @@ def extract_model_data(files,
 
             # ToDo: whats going on here? Why am I missing some lines which other level stash codes have?
             # why am I not including altitude here?
-            model_heights = nc_file.variables['level_height'][:]
+            model_heights = nc_file.variables['level_height'][:] + altitude
 
         else:
             # model level variables

@@ -2,21 +2,24 @@ import datetime as dt
 import pandas as pd
 import os
 
+from model_eval_tools import look_up
 from model_eval_tools.retrieve_UKV import retrieve_ukv_vars_tools
 from model_eval_tools.sa_analysis_grids import ukv_values_from_SA_analysis
 from model_eval_tools.retrieve_UKV import read_premade_model_files
 from model_eval_tools.retrieve_UKV import find_model_files
 
 
-def retrieve_UKV(scint_path,
+def retrieve_UKV(run_choices,
                  DOYstart,
                  DOYstop,
-                 variable='H',
-                 run='21Z',
                  sa_analysis=True,
                  av_disheight=False):
     """
     """
+
+    scint_path = run_choices['scint_path']
+    variable = run_choices['variable']
+    run = run_choices['run_time']
 
     setup_run_dict = retrieve_ukv_vars_tools.UKV_setup_run(scint_path, variable, DOYstart, DOYstop)
     site = setup_run_dict['site']
@@ -30,6 +33,8 @@ def retrieve_UKV(scint_path,
     model_grid_time = {}
 
     if variable == 'H' or variable == 'kdown':
+
+        # ToDo: Changes made to the input not updated for the surface stash code
 
         if sa_analysis == True:
 
@@ -120,42 +125,46 @@ def retrieve_UKV(scint_path,
             else:
                 model_grid_time['13'] = mod_time_13
 
-    if variable == 'H' or variable == 'BL_H':
+    if variable == 'H' or variable == 'BL_H':  # even if var choice is just H, BL_H output is also currently included
 
-        # PLOT BL STASH CODE
-        file_dict_ukv_BL_H_13 = find_model_files.find_UKV_files(DOYstart_mod,
+        # look up what site and grid letter I want based on grid number in run_choices
+        grid_number = run_choices['grid_number']
+
+        grid_name = look_up.grid_dict_lc[grid_number][0]
+        site, grid_letter = grid_name.split(' ')
+
+        file_dict_ukv_BL_H = find_model_files.find_UKV_files(DOYstart_mod,
                                                                 DOYstop_mod,
                                                                 site,
                                                                 'ukv',
                                                                 run,
-                                                                'BL_H',
+                                                                variable,
                                                                 model_path="//rdg-home.ad.rdg.ac.uk/research-nfs/basic/micromet/Tier_processing/rv006011/new_data_storage/"
                                                                 # model_path='C:/Users/beths/OneDrive - University of Reading/local_runs_data/data_wifi_problems/data/'
                                                                 )
 
-        files_ukv_BL_H_13 = find_model_files.order_model_stashes(file_dict_ukv_BL_H_13, 'BL_H')
+        files_ukv_BL_H = find_model_files.order_model_stashes(file_dict_ukv_BL_H, variable)
 
         # from scint_eval.functions import stats_of_BL_H
         # stats_of_BL_H.stats_BL_flux(files_ukv_13)
 
-        # ToDo: hardcoding disheight here as 70. This isn't the best - this needs to be able to change
-        ukv_BL_H_13 = read_premade_model_files.extract_model_data(files_ukv_BL_H_13,
+        ukv_BL_H = read_premade_model_files.extract_model_data(files_ukv_BL_H,
                                                                   DOYstart_mod,
                                                                   DOYstop_mod,
-                                                                  'BL_H',
+                                                                  variable,
                                                                   'ukv',
-                                                                  70,
+                                                                  run_choices['target_height'],
                                                                   site,
                                                                   savepath,
-                                                                  grid_choice='E')
+                                                                  grid_choice=grid_letter)
 
-        BL_H_13_list = [ukv_BL_H_13[5], ukv_BL_H_13[6], ukv_BL_H_13[0], ukv_BL_H_13[1], ukv_BL_H_13[10]]
-        included_BL_H = {'BL_H_13': BL_H_13_list}
-        mod_time_13, mod_vals_13 = read_premade_model_files.retrieve_arrays_model(included_BL_H, 'BL_H_13')
-        model_grid_vals['BL_H_13'] = mod_vals_13
-        model_grid_time['BL_H_13'] = mod_time_13
+        BL_H_list = [ukv_BL_H[5], ukv_BL_H[6], ukv_BL_H[0], ukv_BL_H[1], ukv_BL_H[10]]
+        included_BL_H = {'BL_H': BL_H_list}
+        mod_time, mod_vals = read_premade_model_files.retrieve_arrays_model(included_BL_H, 'BL_H')
+        model_grid_vals['BL_H'] = mod_vals
+        model_grid_time['BL_H'] = mod_time
 
-        BL_H_z = ukv_BL_H_13[10]
+        BL_H_z = ukv_BL_H[10]
 
         if variable == 'BL_H':
             model_site_dict = False

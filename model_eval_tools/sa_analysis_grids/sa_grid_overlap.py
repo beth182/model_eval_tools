@@ -6,6 +6,7 @@ import numpy as np
 from rasterio.mask import mask
 import pylab
 import matplotlib as mpl
+import pandas as pd
 
 
 def SA_grid_percentages(raster_path, save_path, time_string):
@@ -116,7 +117,17 @@ def SA_grid_percentages(raster_path, save_path, time_string):
 
 if __name__ == "__main__":
     # Test
-    raster_path = 'C:/Users/beths/OneDrive - University of Reading/local_runs_data/fp_raster_tests/hourly/applicable_hours/BCT_IMU_65000_2016_142_05.tif'
-    save_path = 'D:/Documents/scint_eval/plots/2016142_2016142_H_IMU_12/'
-    time_string = 'test'
-    SA_grid_percentages(raster_path, save_path, time_string)
+    # raster_path = 'C:/Users/beths/OneDrive - University of Reading/local_runs_data/fp_raster_tests/hourly/applicable_hours/BCT_IMU_65000_2016_142_05.tif'
+    # save_path = 'D:/Documents/scint_eval/plots/2016142_2016142_H_IMU_12/'
+    # time_string = 'test'
+
+    raster_path = 'C:/Users/beths/OneDrive - University of Reading/Paper 2/combine_rasters/SCT_SWT.tif'
+    save_path = 'C:/Users/beths/Desktop/LANDING/'
+    time_string = 'SCT_SWT'
+
+    grid_vals, calculated_sum = SA_grid_percentages(raster_path, save_path, time_string)
+
+    df = pd.DataFrame.from_dict([grid_vals])
+    df = df.sort_values(by=0, axis=1, ascending=False)
+
+    print('end')

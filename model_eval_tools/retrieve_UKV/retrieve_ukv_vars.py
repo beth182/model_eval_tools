@@ -133,12 +133,12 @@ def retrieve_UKV(run_choices,
                                                                 site,
                                                                 'ukv',
                                                                 run,
-                                                                variable,
+                                                                'BL_H',
                                                                 model_path="//rdg-home.ad.rdg.ac.uk/research-nfs/basic/micromet/Tier_processing/rv006011/new_data_storage/"
                                                                 # model_path='C:/Users/beths/OneDrive - University of Reading/local_runs_data/data_wifi_problems/data/'
                                                                 )
 
-        files_ukv_BL_H = find_model_files.order_model_stashes(file_dict_ukv_BL_H, variable)
+        files_ukv_BL_H = find_model_files.order_model_stashes(file_dict_ukv_BL_H, 'BL_H')
 
         # from scint_eval.functions import stats_of_BL_H
         # stats_of_BL_H.stats_BL_flux(files_ukv_13)
@@ -146,7 +146,7 @@ def retrieve_UKV(run_choices,
         ukv_BL_H = read_premade_model_files.extract_model_data(files_ukv_BL_H,
                                                                   DOYstart_mod,
                                                                   DOYstop_mod,
-                                                                  variable,
+                                                                  'BL_H',
                                                                   'ukv',
                                                                   run_choices['target_height'],
                                                                   site,

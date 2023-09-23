@@ -93,7 +93,11 @@ def SA_grid_percentages(raster_path, save_path, time_string):
             # summing the values in this grid
             summed_val = np.nansum(masked)
             # as a percentage of the total raster, and rounded to 4 sig fig.
-            grid_sum = round((summed_val / total_SA_sum) * 100, 4)
+            grid_sum = (summed_val / total_SA_sum) * 100.0
+
+            if grid_sum != 0.0:
+                if grid_sum < 1:  # if the grid box contribution is less than 1%, replace as nan
+                    grid_sum = np.nan
 
         except ValueError:
             # traceback.print_exc()

@@ -12,7 +12,7 @@ def append_grids_to_csv(time_key,
                         model_site,
                         percentage_vals,
                         calculated_sum,
-                        csv_path='../sa_analysis_grids/ukv_grid_sa_percentages.csv'):
+                        csv_path='./sa_analysis_grids/ukv_grid_sa_percentages.csv'):
     """
     function to append - newly-calculated grid percentage overlap with SA - to a csv
     :return:
@@ -103,7 +103,6 @@ def prepare_model_grid_percentages(time,
         else:
             # gets the percentage values for each grid
             grid_vals, calculated_sum = sa_grid_overlap.SA_grid_percentages(sa, savepath, hour.strftime('%H'))
-
             # calculated sum is the % of the total footprint captured falling within the model grids
 
             # new dict for grids to be included
@@ -117,9 +116,9 @@ def prepare_model_grid_percentages(time,
                     # append to dictionary
                     included_grids_vals_raw[grid] = grid_val
 
-            # calculating a new percentage from a new 100% - as we have discared some of the percentages
-            # (any grid bellow 1)
-            new_100 = sum(included_grids_vals_raw.values())
+            # # calculating a new percentage from a new 100% - as we have discared some of the percentages
+            # # (any grid bellow 1)
+            # new_100 = sum(included_grids_vals_raw.values())
 
             included_grids_vals = {}
 
@@ -127,9 +126,9 @@ def prepare_model_grid_percentages(time,
                 grid_val = included_grids_vals_raw[grid]
 
                 # calculates a new percentage value
-                new_val = (grid_val / new_100) * 100
+                # new_val = (grid_val / new_100) * 100
 
-                included_grids_vals[grid] = new_val
+                included_grids_vals[grid] = grid_val
 
             model_site = sorted(included_grids_vals.keys())
 

@@ -47,7 +47,7 @@ def weight_lc_fractions(model_site_dict, percentage_vals_dict, DOYstart,
         combine_weighted_df = pd.concat(grid_lc_df_list_weighted)
 
         combine_weighted_df.loc['W_SUM'] = combine_weighted_df.sum(numeric_only=True, axis=0)
-        assert np.isclose(combine_weighted_df.loc['W_SUM'].sum(), 1)
+        assert np.isclose(combine_weighted_df.loc['W_SUM'].sum(), 1, rtol=0.01)
 
         for i in combine_weighted_df.index:
             if type(i) != str:

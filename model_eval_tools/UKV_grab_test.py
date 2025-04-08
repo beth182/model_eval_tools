@@ -23,7 +23,7 @@ for DOY in DOY_list:
     df = read_calculated_fluxes.extract_data(doy_list=[DOY],
                                              pair_id=pair_id,
                                              var_list=var_list,
-                                             time_res=time_res)
+                                             time_res=time_res + '_PERIOD_VAR_' + str(10))
 
     DOY_dict[DOY] = {time_res: df}
 

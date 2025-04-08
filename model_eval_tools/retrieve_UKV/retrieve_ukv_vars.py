@@ -96,7 +96,7 @@ def retrieve_UKV(run_choices,
                                                                'ukv',
                                                                run,
                                                                variable,
-                                                               model_path="//rdg-home.ad.rdg.ac.uk/research-nfs/basic/micromet/Tier_processing/rv006011/new_data_storage/"
+                                                               model_path="//rdg-home.ad.rdg.ac.uk/research-nfs/rds/micromet/Tier_processing/rv006011/new_data_storage/"
                                                                # model_path='C:/Users/beths/OneDrive - University of Reading/local_runs_data/data_wifi_problems/data/'
                                                                )
 
@@ -134,7 +134,7 @@ def retrieve_UKV(run_choices,
                                                                 'ukv',
                                                                 run,
                                                                 'BL_H',
-                                                                model_path="//rdg-home.ad.rdg.ac.uk/research-nfs/basic/micromet/Tier_processing/rv006011/new_data_storage/"
+                                                                model_path="//rdg-home.ad.rdg.ac.uk/research-nfs/rds/micromet/Tier_processing/rv006011/new_data_storage/"
                                                                 # model_path='C:/Users/beths/OneDrive - University of Reading/local_runs_data/data_wifi_problems/data/'
                                                                 )
 
@@ -229,7 +229,7 @@ def retrieve_UKV(run_choices,
                                                              'ukv',
                                                              run,
                                                              variable,
-                                                             model_path="//rdg-home.ad.rdg.ac.uk/research-nfs/basic/micromet/Tier_processing/rv006011/new_data_storage/"
+                                                             model_path="//rdg-home.ad.rdg.ac.uk/research-nfs/rds/micromet/Tier_processing/rv006011/new_data_storage/"
                                                              # model_path='C:/Users/beths/OneDrive - University of Reading/local_runs_data/data_wifi_problems/data/'
                                                              )
 

@@ -12,7 +12,7 @@ def find_UKV_files(DOYstart,
                    model_name,
                    run,
                    variable,
-                   model_path="/storage/basic/micromet/Tier_processing/rv006011/new_data_storage/"):
+                   model_path="/storage/research/micromet/Tier_processing/rv006011/new_data_storage/"):
     """
     :param DOYstart:
     :param DOYstop:

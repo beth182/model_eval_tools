@@ -118,7 +118,7 @@ def check_KSSW_grid_stashcodes():
                                                                'ukv',
                                                                '21Z',
                                                                'kdown',
-                                                               # model_path="//rdg-home.ad.rdg.ac.uk/research-nfs/basic/micromet/Tier_processing/rv006011/new_data_storage/"
+                                                               # model_path="//rdg-home.ad.rdg.ac.uk/research-nfs/rds/micromet/Tier_processing/rv006011/new_data_storage/"
                                                                model_path='C:/Users/beths/OneDrive - University of Reading/local_runs_data/data_wifi_problems/data/'
                                                                )
 
@@ -148,7 +148,7 @@ def check_KSSW_grid_stashcodes():
                                                              'ukv',
                                                              '21Z',
                                                              'kdown',
-                                                             # model_path="//rdg-home.ad.rdg.ac.uk/research-nfs/basic/micromet/Tier_processing/rv006011/new_data_storage/"
+                                                             # model_path="//rdg-home.ad.rdg.ac.uk/research-nfs/rds/micromet/Tier_processing/rv006011/new_data_storage/"
                                                              model_path='C:/Users/beths/OneDrive - University of Reading/local_runs_data/data_wifi_problems/data/'
                                                              )
     files_ukv_kdown_MR = find_model_files.order_model_stashes(file_dict_ukv_kdown_MR, 'kdown')
